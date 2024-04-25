@@ -2,7 +2,7 @@ CREATE TIME Transaction{
     id VARCHAR(255) NOT NULL PRIMARY KEY,
     accountId VARCHAR(255),
     transactionType VARCHAR(255),
-    amount DECIMAL(10,2),
+    amount VARCHAR(255),
     currency VARCHAR(255),
     updateTime VARCHAR(255),
     debitOrCredit VARCHAR(255),
