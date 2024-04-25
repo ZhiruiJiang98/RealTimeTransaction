@@ -14,7 +14,7 @@ two types of transactions:
 ## Detail Design:
 ### Database Design:
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 #### User
 * id: (PK, UUID): Uniquely identifies a user
@@ -37,8 +37,8 @@ two types of transactions:
 * amount (VARCHAR): The amount of the transaction
 * currency (VARCHAR): The currency of the transaction
 * entryStatus (VARCHAR) : Debit or Credit
-* createTime (TIMESTAMP): Time the transaction was created
-* updateTime (TIMESTAMP): Time the transaction was last updated
+* createTime (VARCHAR): Time the transaction was created
+* updateTime (VARCHAR): Time the transaction was last updated
 * status (VARCHAR): The status of the transaction (PENDING, APPROVED, DECLINED)
 
 ### API Design:
@@ -154,7 +154,8 @@ example:
   }
 }
 ```
-  
+### Secret Design
+The security design will be responsible by AWS IAM and Cognito. The system will use AWS Cognito to authenticate and authorize users. The system will use AWS IAM to manage permissions and access control.
 
 
 
