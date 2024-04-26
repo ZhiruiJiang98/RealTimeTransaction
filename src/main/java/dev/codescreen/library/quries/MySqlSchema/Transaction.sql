@@ -1,6 +1,7 @@
 CREATE TIME Transaction{
     id VARCHAR(255) NOT NULL PRIMARY KEY,
     accountId VARCHAR(255),
+    messageId VARCHAR(255),
     transactionType VARCHAR(255),
     amount VARCHAR(255),
     currency VARCHAR(255),
