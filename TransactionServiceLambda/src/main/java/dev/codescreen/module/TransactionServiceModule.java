@@ -3,7 +3,7 @@ import com.google.inject.AbstractModule;
 import dev.codescreen.library.storage.AccountStorageManager;
 import dev.codescreen.library.storage.TransactionStorageManager;
 
-public class RealTimeCalculationServiceModule extends AbstractModule{
+public class TransactionServiceModule extends AbstractModule{
    @Override
     protected void configure() {
        install(new MySqlClientModule());

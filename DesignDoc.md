@@ -154,10 +154,13 @@ example:
   }
 }
 ```
-### Secret Design
+### Security Design
 The security design will be responsible by AWS IAM and Cognito. The system will use AWS Cognito to authenticate and authorize users. The system will use AWS IAM to manage permissions and access control.
 
-
+### Open Question
+* Do we need to consider concurrency and caching problem under the AWS SAM.
+* DB synchronization lock. 
+* Current exchange 
 
 
 

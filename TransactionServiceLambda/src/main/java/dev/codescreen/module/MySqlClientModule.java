@@ -21,7 +21,7 @@ public class MySqlClientModule extends AbstractModule  {
         LOGGER.info("Getting database credentials..");
         DatabaseSecret secret = getDbSecret();
         bindConstant().annotatedWith(Names.named("MysqlHost")).to(
-                String.format("jdbc:mysql://%s/database-1", secret.getHost())
+                String.format("jdbc:mysql://%s/%s", secret.getHost(), System.getenv("LOCAL_MYSQL_DATABASE"))
         );
         bindConstant().annotatedWith(Names.named("MysqlUser")).to(secret.getUsername());
         bindConstant().annotatedWith(Names.named("MysqlPassword")).to(secret.getPassword());
@@ -31,7 +31,24 @@ public class MySqlClientModule extends AbstractModule  {
             throw new RuntimeException(e);
         }
     }
-    private DatabaseSecret getDbSecret() {
+    private DatabaseSecret getDbSecret(){
+        if("local".equals(System.getenv("RUN_ENVIRONMENT"))){
+            return getLocalDbSecret();
+        } else {
+            return getAWSRdsDbSecret();
+        }
+    }
+    private DatabaseSecret getLocalDbSecret(){
+        String localHost = System.getenv("LOCAL_MYSQL_HOST");
+        String localUsername = System.getenv("LOCAL_MYSQL_USERNAME");
+        String localPassword = System.getenv("LOCAL_MYSQL_PASSWORD");
+        return  DatabaseSecret.builder()
+                .host(localHost)
+                .username(localUsername)
+                .password(localPassword)
+                .build();
+    }
+    private DatabaseSecret getAWSRdsDbSecret() {
         String secretName = System.getenv("dbSecretName");
         Region region = Region.of("us-west-2");
 

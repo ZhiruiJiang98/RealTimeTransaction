@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: A simple AWS Lambda application that handles transactions.
+
+Globals:
+  Function:
+    Timeout: 20 # Time in seconds until the function times out.
+
+Resources:
+  LoadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dev.codescreen.CreateAuthorizationTransactionHandler::handleRequest
+      Runtime: java11
+      CodeUri: ./target/TransactionServiceLambda-1.0.jar
+      Environment:
+        Variables:
+            LOCAL_MYSQL_HOST: "localhost"
+            LOCAL_MYSQL_USERNAME: "root"
+            LOCAL_MYSQL_PASSWORD: "30221-Jiang"
+            LOCAL_MYSQL_DATABASE: "CurrentInterviewDB"
+            RUN_ENVIRONMENT: "local"
+      Events:
+        LoadApi:
+          Type: Api
+          Properties:
+            Path: /load/{messageId}
+            Method: put
+
+  AuthorizationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dev.codescreen.CreateLoadTransactionHandler::handleRequest
+      Runtime: java11
+      CodeUri: ./target/TransactionServiceLambda-1.0.jar
+      Environment:
+        Variables:
+          LOCAL_MYSQL_HOST: "localhost"
+          LOCAL_MYSQL_USERNAME: "root"
+          LOCAL_MYSQL_PASSWORD: "30221-Jiang"
+          LOCAL_MYSQL_DATABASE: "CurrentInterviewDB"
+          RUN_ENVIRONMENT: "local"
+      Events:
+        AuthorizationApi:
+          Type: Api
+          Properties:
+            Path: /authorization/{messageId}
+            Method: put
