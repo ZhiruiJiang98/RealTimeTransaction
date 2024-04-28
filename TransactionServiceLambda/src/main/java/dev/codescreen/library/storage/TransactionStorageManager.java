@@ -8,18 +8,16 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 public class TransactionStorageManager {
     private final Logger LOGGER = LogManager.getLogger(TransactionStorageManager.class);
     public TransactionStorageManager() {}
-    public String createTransaction(MysqlClient client, String id, String messageId, String accountId, String transactionType, String amount, String currency, String updateTime, String createdTime, String debitOrCredit, String transactionStatus) throws SQLException {
+    public boolean createTransaction(MysqlClient client, String id, String messageId, String accountId, String amount, String currency, String updateTime, String createdTime, String debitOrCredit, String transactionStatus) throws SQLException {
         LOGGER.info(String.format("Creating Transaction with id: %s & messageId: %s", id, messageId));
-        String query = TransactionQueries.createTransaction(id, accountId, messageId, transactionType, amount, currency, updateTime, createdTime, debitOrCredit, transactionStatus);
+        String query = TransactionQueries.createTransaction(id, accountId, messageId, amount, currency, updateTime, createdTime, debitOrCredit, transactionStatus);
         try{
             int rs = client.executeUpdate(query);
-            return rs == 1 ? id : null;
+            return rs == 1;
         } catch (SQLException ex) {
             LOGGER.error("Error occurred while creating transaction", ex);
             throw ex;
@@ -35,6 +33,21 @@ public class TransactionStorageManager {
 
         } catch (SQLException ex) {
             LOGGER.error("Error occurred while getting transaction count", ex);
+            throw ex;
+        }
+    }
+    public String creditOrDebitStatus(MysqlClient client, String accountId) throws SQLException{
+        LOGGER.info("Getting credit or debit status");
+        try{
+            LOGGER.info("Executing creditOrDebitStatus query: " + TransactionQueries.creditOrDebitStatus(accountId));
+            String query = TransactionQueries.creditOrDebitStatus(accountId);
+            ResultSet rs = client.executeQuery(query);
+            if(rs.next()){
+                return rs.getString("creditOrDebit");
+            }
+            return null;
+        } catch (SQLException ex) {
+            LOGGER.error("Error occurred while getting credit or debit status", ex);
             throw ex;
         }
     }
