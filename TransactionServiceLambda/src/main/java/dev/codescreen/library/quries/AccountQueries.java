@@ -19,4 +19,8 @@ public class AccountQueries {
                 }).collect(Collectors.joining(",")) +
                 " WHERE userId='" + userId + "' AND accountId='" + accountId + "'";
     }
+    public static String getAccountById(String userId, String accountId) {
+        return "SELECT * FROM Account WHERE userId='" + userId + "'";
+    }
+
 }

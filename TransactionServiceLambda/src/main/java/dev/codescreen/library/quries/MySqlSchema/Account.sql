@@ -1,8 +1,10 @@
-CREATE TABLE Account{
-    id VARCHAR(255) PRIMARY KEY,
-    userId VARCHAR(255),
-    balance VARCHAR(255),
-    createTime VARCHAR(255),
-    updateTime VARCHAR(255),
-    FOREIGN KEY (userId) REFERENCES User(id)
-}
+CREATE TABLE Account
+(
+    id         VARCHAR(255),
+    userId     VARCHAR(255),
+    balance    VARCHAR(255),
+    createdTime VARCHAR(255),
+    updatedTime VARCHAR(255),
+    PRIMARY KEY (id),
+    FOREIGN KEY (userId) REFERENCES User (id)
+);

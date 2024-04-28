@@ -13,9 +13,13 @@ public class TransactionQueries {
         return "SELECT * FROM Transaction LIMIT 10 OFFSET 0";
     }
 
-    public static String createTransaction(String id, String accountId, String messageId, String transactionType, String amount, String currency, String updateTime, String createdTime, String debitOrCredit, String transactionStatus){
-        return "INSERT INTO Transaction (id, accountId, messageId, transactionType, amount, currency, updateTime, createdTime, debitOrCredit, transactionStatus) VALUES ('" +
-                id + "', '" + accountId + "', '" + messageId + "','" + transactionType + "', '" + amount + "', '" + currency + "', '" + updateTime + "', '" + createdTime + "', '" + debitOrCredit + "', '" + transactionStatus + "')";
+    public static String createTransaction(String id, String accountId, String messageId, String amount, String currency, String updateTime, String createdTime, String debitOrCredit, String transactionStatus){
+        return "INSERT INTO Transaction (id, accountId, messageId, amount, currency, updateTime, createdTime, debitOrCredit, transactionStatus) VALUES ('" +
+                id + "', '" + accountId + "', '" + messageId + "','" + amount + "', '" + currency + "', '" + updateTime + "', '" + createdTime + "', '" + debitOrCredit + "', '" + transactionStatus + "')";
+    }
+
+    public static String creditOrDebitStatus(String accountId){
+        return String.format("SELECT a.balance, t.transaction_type AS creditOrDebit FROM accounts a JOIN transactions t ON a.account_id = t.account_id WHERE a.account_id = %s ORDER BY t.transaction_date DESC LIMIT 1;", accountId);
     }
 
 }
