@@ -19,6 +19,7 @@ public class MysqlClient {
             this.conn = DriverManager.getConnection(host, user, password);
             this.stm = this.conn.createStatement();
         } catch (SQLException ex) {
+            System.out.println("SQLException: " + ex.getMessage());
             LOGGER.error("SQLException: " + ex.getMessage());
             LOGGER.error("SQLState: " + ex.getSQLState());
             LOGGER.error("VendorError: " + ex.getErrorCode());

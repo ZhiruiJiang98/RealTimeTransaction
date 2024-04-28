@@ -10,8 +10,6 @@ public enum TransactionResultSet {
     ACCOUNT_ID("accountId", "string"),
     @SerializedName("amount")
     AMOUNT("amount", "string"),
-    @SerializedName("transactionType")
-    TRANSACTION_TYPE("transactionType", "string"),
     @SerializedName("createdTime")
     CREATED_TIME("createdTime", "string"),
     @SerializedName("updateTime")

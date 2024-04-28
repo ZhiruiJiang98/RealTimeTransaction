@@ -12,4 +12,5 @@ public class AccountDto {
     private String createTime;
     private String updateTime;
     private String currency;
+
 }

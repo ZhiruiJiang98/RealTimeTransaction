@@ -8,7 +8,7 @@ import lombok.Data;
 public class TransactionDto {
     private String id;
     private String accountId;
-    private String transactionType;
+    private String messageId;
     private String amount;
     private String currency;
     private String createTime;
