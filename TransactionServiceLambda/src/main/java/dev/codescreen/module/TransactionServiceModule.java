@@ -5,7 +5,7 @@ import dev.codescreen.library.storage.TransactionStorageManager;
 
 public class TransactionServiceModule extends AbstractModule{
    @Override
-    protected void configure() {
+    protected void configure() throws RuntimeException{
        install(new MySqlClientModule());
        bind(AccountStorageManager.class).toInstance(new AccountStorageManager());
        bind(TransactionStorageManager.class).toInstance(new TransactionStorageManager());

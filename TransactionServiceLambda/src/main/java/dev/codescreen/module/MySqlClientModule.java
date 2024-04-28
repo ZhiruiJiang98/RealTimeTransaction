@@ -32,11 +32,10 @@ public class MySqlClientModule extends AbstractModule  {
         }
     }
     private DatabaseSecret getDbSecret(){
-        if("local".equals(System.getenv("RUN_ENVIRONMENT"))){
+
+            System.out.println("Using local db secret");
             return getLocalDbSecret();
-        } else {
-            return getAWSRdsDbSecret();
-        }
+
     }
     private DatabaseSecret getLocalDbSecret(){
         String localHost = System.getenv("LOCAL_MYSQL_HOST");
