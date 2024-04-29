@@ -157,10 +157,6 @@ example:
     }
   }
   ```
-### Security Design
-The security design will be responsible by AWS IAM and Cognito. The system will use AWS Cognito to authenticate and authorize users. The system will use AWS IAM to manage permissions and access control.
-
-
 
 ### Open Question
 
