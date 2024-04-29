@@ -19,7 +19,7 @@ Resources:
           LOCAL_MYSQL_HOST: "host.docker.internal"
           LOCAL_MYSQL_USERNAME: "Your-local-db-user-name"
           LOCAL_MYSQL_PASSWORD: "Your-local-db-password"
-          LOCAL_MYSQL_DATABASE: "Your-local-db-dabase-name"
+          LOCAL_MYSQL_DATABASE: "Your-local-db-database-name"
           RUN_ENVIRONMENT: "local"
       Events:
         LoadApi:
@@ -40,7 +40,7 @@ Resources:
           LOCAL_MYSQL_HOST: "host.docker.internal"
           LOCAL_MYSQL_USERNAME: "Your-local-db-user-name"
           LOCAL_MYSQL_PASSWORD: "Your-local-db-password"
-          LOCAL_MYSQL_DATABASE: "Your-local-db-dabase-name"
+          LOCAL_MYSQL_DATABASE: "Your-local-db-database-name"
           RUN_ENVIRONMENT: "local"
       Events:
         AuthorizationApi:
