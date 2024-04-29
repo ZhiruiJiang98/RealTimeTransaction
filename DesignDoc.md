@@ -1,26 +1,28 @@
 ## Feature Statement:
 Develop a robust adn scalable real-time transaction service 
 that enable users to securely load funds to their account and authorize 
-transactions based on their current balances. The system must support real-time balance updates 
+transactions based on their current balances. The system must support real-time balance updates with currency exchange
 and maintain a high level of availability and reliability. The system will build base on **AWS SAM** by using AWS Lambda,
 CDK, APIGateWay, CloudWatch, CLI, IAM, and RDS(MySQL).
 
 ## Problem Statement:
 Current's core banking engine requires a real-time transaction service that can handle
 two types of transactions:
-1) Loads: Add money to a user (credit)
-2) Authorizations: Conditionally remove money from a user (debit)
+1) Loads: Add money to a user with different currency (credit)
+2) Authorizations: Conditionally remove money from a user with currency (debit)
 
 ## Detail Design:
 ### Database Design:
 
-![img_1.png](img_1.png)
+![img_1.png](Images/img_1.png)
 
 #### User
 * id: (PK, UUID): Uniquely identifies a user
 * username: (VARCHAR): User's username
 * email: (VARCHAR): User's email
-* createTime: (TIMESTAMP): Time the user was created
+* createTime: (UNIX TIMESTAMP): Time the user was created
+* updatedTime: (UNIX TIMESTAMP): Time update with the user profile
+* PASSWORD: (VARCHAR): User's password
 
 #### Account
 * id (PK, UUID): Uniquely identifies an account

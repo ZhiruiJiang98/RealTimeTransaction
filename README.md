@@ -52,7 +52,7 @@ We are looking for attention in the following areas:
 <br> There's two ways to do so. You can try both way
 1. Manually implement data
 * Copy and paste the schemas' file in 
-<br>`~/<your-root>/CodeScreen_9hlefyhj/TransactionService/TransactionServiceLambda/src/main/java/dev/codescreen/library/queries/MysqlSchema`
+<br>`~/<your-root>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema`
 <br> copy and paste to the sql terminal or using `SOURCE` command
 2. [Skeema.io Schema management tool](https://www.skeema.io/docs/examples/)
 * [Install skeema.io](https://www.skeema.io/cli/download/)
@@ -94,7 +94,7 @@ after that it should generate a `.skeema` folder in the root directory
 3. `http://<your-local-ip>/load/{messageId}`
 * CRUL 
 <br> `CRUL PUT http://<your-local-ip>/load/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
-*POSTMAN
+* POSTMAN
 <br> ![img.png](Images/Postman_Load_Example.png)
 
 ## Design considerations
