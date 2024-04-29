@@ -36,7 +36,7 @@ We are looking for attention in the following areas:
 
 ## Design considerations
 *Replace this: I decided to build X for Y reasons.*
-
+[DesignDoc.md](DesignDoc.md)
 ## Bonus: Deployment considerations
 *Replace this: If I were to deploy this, I would host it in this way with these technologies.*
 
