@@ -129,6 +129,7 @@ example:
     }
     }
     ```
+
 * Response Body:
     ```json
     {
@@ -143,19 +144,19 @@ example:
    }
     ```
   
-example:
-```json
-{
-  "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
-  "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
-  "responseCode": "APPROVED",
-    "transactionAmount": {
-      "amount": "0",
-      "currency": "USD",
-      "debitOrCredit": "String"
+  example:
+  ```json
+  {
+    "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
+    "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
+    "responseCode": "APPROVED",
+      "transactionAmount": {
+        "amount": "0",
+        "currency": "USD",
+        "debitOrCredit": "String"
+    }
   }
-}
-```
+  ```
 ### Security Design
 The security design will be responsible by AWS IAM and Cognito. The system will use AWS Cognito to authenticate and authorize users. The system will use AWS IAM to manage permissions and access control.
 

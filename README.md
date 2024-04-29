@@ -101,8 +101,51 @@ after that it should generate a `.skeema` folder in the root directory
 * Here's my design considerations:
 [DesignDoc.md](DesignDoc.md)
 ## Bonus: Deployment considerations
-*Replace this: If I were to deploy this, I would host it in this way with these technologies.*
 
+### Overview
+
+Our deployment plan leverages AWS services to create a scalable, reliable, and secure transaction processing system. 
+The architecture includes AWS Lambda, Amazon RDS (Mysql), API Gateway, AWS CodePipeline, and additional AWS services for caching and messaging to ensure performance and scalability.
+
+### Infrastructure as Code (IaC) with AWS CDK:
+We use AWS Cloud Development Kit (AWS CDK) to define and provision our AWS infrastructure programmatically. 
+This approach ensures that our infrastructure configurations are reproducible, version-controlled, and transparent. 
+
+### API Management with Amazon API Gateway:
+
+API Gateway manages traffic, authorizes API calls, and monitors interactions. 
+It supports canary release deployments to gradually introduce changes in the production environment.
+
+#### Pipeline Stages:
+* **Synth**: Generates CloudFormation templates from CDK definitions.
+* **Build**: Compiles code, runs unit tests, and packages the application.
+* **Beta**: Deploys to a staging environment where integration tests are conducted via API Gateway.
+* **Prod**: Deploys the validated build to the production environment after approval.
+
+### Database Configuration with Amazon RDS (MySQL):
+
+Amazon RDS is used to host relational data. 
+We configure RDS for high availability and enable features such as automated backups, multi-AZ deployments, and performance insights for monitoring.
+
+* Security: Database access is restricted to Lambda functions via IAM roles and secured within a VPC. Connection pooling is implemented to enhance performance.
+
+###  Performance Optimization:
+To address potential latency issues related to real-time currency exchange rate fetching (Java Money API), 
+we incorporate AWS ElastiCache and/or messaging systems like AWS SQS or Apache Kafka.
+
+* **Caching with ElastiCache**: Temporarily stores frequently accessed data, such as currency exchange rates, reducing latency and API call overhead.
+* **Messaging with SQS/Kafka**: Manages transaction order and integrity during high-volume periods, ensuring system scalability and resilience.
+
+### Monitoring, Logging, and Compliance with AWS CloudWatch and AWS CloudTrail:
+
+* **Monitoring**: AWS CloudWatch monitors and alerts on application and infrastructure performance metrics. Custom metrics and dashboards are configured for real-time visibility.
+* **Logging**: AWS CloudTrail tracks user activity and API usage. Logs are integral for auditing and post-incident analysis.
+* **Compliance**: Ensures all components comply with regulatory standards, utilizing AWS’s compliance capabilities.
+
+### Security and Access Control:
+
+* **IAM**: Manages access to AWS resources. Policies are defined to adhere to the principle of least privilege.
+* **VPC**: Isolates network environments. API Gateway and Lambda functions interact within private subnets to enhance security.
 ## ASCII art
 *Optional but suggested, replace this:*
 ```
