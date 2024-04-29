@@ -9,38 +9,38 @@ CDK, APIGateWay, CloudWatch, CLI, IAM, and RDS(MySQL).
 Current's core banking engine requires a real-time transaction service that can handle
 two types of transactions:
 1) Loads: Add money to a user with different currency (credit)
-2) Authorizations: Conditionally remove money from a user with currency (debit)
+2) Authorizations: Conditionally remove money from a user with different currency (debit)
 
 ## Detail Design:
 ### Database Design:
 
-![img_1.png](Images/img_1.png)
+![img.png](Images/dbdesign.png)
 
 #### User
-* id: (PK, UUID): Uniquely identifies a user
+* id: (PK, VARCHAR): Uniquely identifies a user
 * username: (VARCHAR): User's username
 * email: (VARCHAR): User's email
-* createTime: (UNIX TIMESTAMP): Time the user was created
-* updatedTime: (UNIX TIMESTAMP): Time update with the user profile
+* createTime: (VARCHAR): Unix Timestamp the user was created
+* updatedTime: (VARCHAR): Unix Timestamp update with the user profile
 * PASSWORD: (VARCHAR): User's password
 
 #### Account
-* id (PK, UUID): Uniquely identifies an account
-* userId (FK, UUID): User's id
+* id (PK, VARCHAR): Uniquely identifies an account
+* userId (FK, VARCHAR): User's id
 * balance (VARCHAR): Account balance
-* createTime (TIMESTAMP): Time the account was created
-* updateTime (TIMESTAMP): Time the account was last updated
+* createTime (VARCHAR): Unix Timestamp the account was created
+* updateTime (VARCHAR): Unix Timestamp the account was last updated
 * currency (VARCHAR): The currency of the account balances.
 
 #### Transaction
-* id: (PK, UUID): Uniquely identifies a transaction
-* accountId (FK, UUID): Account's id
-* transactionType (VARCHAR): The type of transaction (LOAD, AUTHORIZATION)
+* id: (PK, VARCHAR): Uniquely identifies a transaction
+* accountId (FK, VARCHAR): Account's id
+* messageId (VARCHAR): UUID of message Id
 * amount (VARCHAR): The amount of the transaction
 * currency (VARCHAR): The currency of the transaction
 * entryStatus (VARCHAR) : Debit or Credit
-* createTime (VARCHAR): Time the transaction was created
-* updateTime (VARCHAR): Time the transaction was last updated
+* createTime (VARCHAR): Unix Timestamp of the transaction was created
+* updateTime (VARCHAR): Unix Timestamp of the transaction was last updated
 * status (VARCHAR): The status of the transaction (PENDING, APPROVED, DECLINED)
 
 ### API Design:
@@ -159,11 +159,7 @@ example:
 ### Security Design
 The security design will be responsible by AWS IAM and Cognito. The system will use AWS Cognito to authenticate and authorize users. The system will use AWS IAM to manage permissions and access control.
 
+
+
 ### Open Question
-* Do we need to consider concurrency and caching problem under the AWS SAM.
-* DB synchronization lock. 
-* Current exchange 
-
-
-
 
