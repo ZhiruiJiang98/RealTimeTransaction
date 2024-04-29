@@ -33,7 +33,6 @@ public class MySqlClientModule extends AbstractModule  {
     }
     private DatabaseSecret getDbSecret(){
 
-            System.out.println("Using local db secret");
             return getLocalDbSecret();
 
     }

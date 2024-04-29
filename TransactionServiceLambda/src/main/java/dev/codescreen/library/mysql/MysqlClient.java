@@ -31,6 +31,7 @@ public class MysqlClient {
             String query
     ) throws SQLException {
         try {
+
             this.stm.execute(query);
             return this.stm.getResultSet();
         } catch (SQLException ex) {

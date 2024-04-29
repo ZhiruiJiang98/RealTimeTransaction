@@ -1,6 +1,5 @@
 package dev.codescreen.action;
 
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -18,15 +17,13 @@ import dev.codescreen.library.storage.TransactionStorageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.money.CurrencyUnit;
-import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 import javax.money.UnknownCurrencyException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
-
 
 
 public class CreateAuthorizationTransactionAction implements AbstractAction<APIGatewayProxyRequestEvent, AuthorizationTransactionResponse> {
@@ -63,20 +60,15 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
         if (!requestValidated(event)) {
             return constructResponse(
                     ActionResponseStatus.BAD_REQUEST,
-                    "query parameter missing",
+                    "query parameter missing or data is not valid...",
                     null,
                     getActionName()
             );
         }
         try {
             LOGGER.info("Starting CreateAuthorizationTransactionAction ...");
-            System.out.println("Starting CreateAuthorizationTransactionAction ...");
             Gson gson = new Gson();
-            System.out.println("db host: " + this.host);
-            System.out.println("db user: " + this.user);
-            System.out.println("db pwd: " + this.pwd);
             this.client.connect(this.host, this.user, this.pwd);
-            System.out.println("Connect to local db successfully...");
             this.client.setAutoCommit(false);
 
             AuthorizationTransactionRequest request = gson.fromJson(event.getBody(), AuthorizationTransactionRequest.class);
@@ -85,13 +77,21 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             //Get the current account
             AccountDto currentAccount = getCurrentAccount(request.getUserId());
 
+            if (currentAccount == null) {
+                return constructResponse(
+                        ActionResponseStatus.NOT_FOUND,
+                        "Account not found...",
+                        null,
+                        getActionName()
+                );
+            }
             //Check if transaction already exist
             if (isTransactionDuplicate(request.getMessageId())) {
                 LOGGER.info("Transaction has already been debited or credited");
-                System.out.println("Transaction has already been debited or credited");
-                client.close();
                 return handleDuplicateTransaction(request, currentAccount, currentTimestamp);
             }
+
+            TransactionDto currentTransaction = createTransactionDto(request, currentAccount);
 
 
             CurrencyExchanger currencyExchanger = new CurrencyExchanger();
@@ -103,17 +103,13 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             BigDecimal currentTransactionAmount = exchangeAmount.getNumber().numberValue(BigDecimal.class);
             if (isInsufficientBalance(currentAccount.getBalance(), currentTransactionAmount)) {
                 LOGGER.info("Insufficient balance");
-                System.out.println("Insufficient balance");
-                client.close();
-                return handleInsufficientBalance(request, currentAccount);
+                currentTransaction.setStatus(ResponseCode.DECLINED.code);
+                return handleInsufficientBalance(request, currentTransaction, currentAccount);
             }
 
 
-
-            TransactionDto currentTransaction = createTransactionDto(request, currentAccount);
-
-            String currentBalanceAfterTransaction = currentBalance.subtract(currentTransactionAmount).toString();
-
+            String currentBalanceAfterTransaction = currentBalance.subtract(currentTransactionAmount).setScale(2, RoundingMode.CEILING).toString();
+            currentTransaction.setStatus(ResponseCode.APPROVED.code);
             if (processTransaction(currentTransaction, currentAccount, currentBalanceAfterTransaction)) {
 
                 client.commit();
@@ -125,7 +121,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                         getActionName()
                 );
             } else {
-                System.out.println("Didn't add into db....");
+
                 return constructResponse(
                         ActionResponseStatus.BAD_REQUEST,
                         "Error occurred while processing request...",
@@ -150,13 +146,16 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
     }
 
     private AccountDto getCurrentAccount(String userId) throws SQLException {
+        if (this.accountStorageManager.getAccountCount(client, userId) == 0) {
+            return null;
+        }
         Map<AccountResultSet, Object> account = this.accountStorageManager.getAccountById(this.client, userId, "");
         return AccountDto.builder()
                 .id((String) account.get(AccountResultSet.ID))
                 .userId((String) account.get(AccountResultSet.USER_ID))
                 .balance((String) account.get(AccountResultSet.BALANCE))
                 .createTime((String) account.get(AccountResultSet.CREATED_TIME))
-                .updateTime((String) account.get(AccountResultSet.LAST_UPDATED))
+                .updateTime((String) account.get(AccountResultSet.UPDATED_TIME))
                 .currency((String) account.get(AccountResultSet.CURRENCY))
                 .build();
     }
@@ -165,10 +164,11 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
         return this.transactionStorageManager.getTransactionCount(this.client, messageId) != 0;
     }
 
+
     private ActionResponse<AuthorizationTransactionResponse> handleDuplicateTransaction(AuthorizationTransactionRequest request, AccountDto currentAccount, String currentTimestamp) throws SQLException {
         // ... (code for handling duplicate transactions)
         // if it is exist, then this transaction can't be processed. Return a declined response
-        String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, request.getMessageId());
+        String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, currentAccount.getId());
         boolean rs = this.transactionStorageManager.createTransaction(this.client,
                 UUID.randomUUID().toString(),
                 request.getMessageId(),
@@ -186,7 +186,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             client.close();
             return constructResponse(
                     ActionResponseStatus.BAD_REQUEST,
-                    "Error occurred while creating transaction...",
+                    "message duplicated, please check your messageId....",
                     null,
                     getActionName()
             );
@@ -212,6 +212,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 getActionName()
         );
     }
+
     private TransactionDto createTransactionDto(AuthorizationTransactionRequest request, AccountDto currentAccount) {
         String currentTimestamp = String.valueOf(System.currentTimeMillis());
         return TransactionDto.builder()
@@ -223,7 +224,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 .entryStatus(request.getTransactionAmount().getDebitOrCredit())
                 .createTime(currentTimestamp)
                 .updateTime(currentTimestamp)
-                .status(ResponseCode.APPROVED.code)
+                .status(null)
                 .build();
     }
 
@@ -247,7 +248,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 String.valueOf(System.currentTimeMillis()),
                 currentAccount.getCurrency()
         );
-        return rsAccount  && rsTransaction;
+        return rsAccount && rsTransaction;
     }
 
     private AuthorizationTransactionResponse buildAuthorizationTransactionResponse(AuthorizationTransactionRequest request, String currentBalanceAfterTransaction, String currency) {
@@ -263,23 +264,38 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 .build();
     }
 
-    private ActionResponse<AuthorizationTransactionResponse> handleInsufficientBalance(AuthorizationTransactionRequest request, AccountDto currentAccount) {
-        return constructResponse(
-                ActionResponseStatus.BAD_REQUEST,
-                "Insufficient balance...",
-                AuthorizationTransactionResponse.builder()
-                        .userId(request.getUserId())
-                        .messageId(request.getMessageId())
-                        .responseCode(ResponseCode.DECLINED.code)
-                        .balance(
-                                Balance.builder()
-                                        .amount(currentAccount.getBalance())
-                                        .currency(currentAccount.getCurrency())
-                                        .debitOrCredit(request.getTransactionAmount().getDebitOrCredit())
-                                        .build()
-                        ).build(),
-                getActionName()
-        );
+    private ActionResponse<AuthorizationTransactionResponse> handleInsufficientBalance(AuthorizationTransactionRequest request, TransactionDto currentTransaction, AccountDto currentAccount) throws SQLException {
+
+        String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, currentAccount.getId());
+        currentTransaction.setStatus(ResponseCode.DECLINED.code);
+        if (processTransaction(currentTransaction, currentAccount, currentAccount.getBalance())) {
+            this.client.commit();
+            this.client.close();
+            return constructResponse(
+                    ActionResponseStatus.BAD_REQUEST,
+                    "Insufficient balance...",
+                    AuthorizationTransactionResponse.builder()
+                            .userId(request.getUserId())
+                            .messageId(request.getMessageId())
+                            .responseCode(ResponseCode.DECLINED.code)
+                            .balance(
+                                    Balance.builder()
+                                            .amount(currentAccount.getBalance())
+                                            .currency(currentAccount.getCurrency())
+                                            .debitOrCredit(recentCreditOrDebit)
+                                            .build()
+                            ).build(),
+                    getActionName()
+            );
+        } else {
+            this.client.close();
+            return constructResponse(
+                    ActionResponseStatus.BAD_REQUEST,
+                    "Error occurred while processing request...",
+                    null,
+                    getActionName()
+            );
+        }
     }
 
     private boolean isInsufficientBalance(String currentBalance, BigDecimal currentTransactionAmount) {
@@ -289,15 +305,18 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
     @Override
     public boolean requestValidated(APIGatewayProxyRequestEvent event) {
         LOGGER.info("Validating request...");
-        System.out.println("Validating request...");
+
         if (event.getPathParameters() == null || event.getBody() == null || event.getPathParameters().isEmpty() || event.getBody().isEmpty()) {
             return false;
         }
         try {
             Gson gson = new Gson();
             AuthorizationTransactionRequest request = gson.fromJson(event.getBody(), AuthorizationTransactionRequest.class);
-            CurrencyUnit currencyUnit = Monetary.getCurrency(request.getTransactionAmount().getCurrency());
-            return request.syntacticallyValid() && !request.getUserId().isEmpty() && !request.getMessageId().isEmpty() && request.getTransactionAmount() != null && request.getTransactionAmount().getAmount().matches("\\d+(\\.\\d+)?");
+            return request.syntacticallyValid() &&
+                    !request.getUserId().isEmpty() &&
+                    !request.getMessageId().isEmpty() &&
+                    request.getTransactionAmount() != null &&
+                    request.getTransactionAmount().getAmount().matches("\\d+(\\.\\d+)?");
         } catch (JsonSyntaxException | UnknownCurrencyException ex) {
             LOGGER.error(ex.getMessage());
             return false;

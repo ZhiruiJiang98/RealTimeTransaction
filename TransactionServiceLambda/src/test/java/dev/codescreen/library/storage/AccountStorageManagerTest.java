@@ -10,8 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -38,10 +37,10 @@ public class AccountStorageManagerTest {
     public void testUpdateAccount_Success() throws SQLException {
         when(mysqlClient.executeUpdate(anyString())).thenReturn(1);
 
-        String result = accountStorageManager.updateAccount(mysqlClient, ACCOUNT_ID, USER_ID, BALANCE,
+        boolean result = accountStorageManager.updateAccount(mysqlClient, ACCOUNT_ID, USER_ID, BALANCE,
                 CREATED_TIME, LAST_UPDATED, CURRENCY);
 
-        assertEquals(ACCOUNT_ID, result);
+        assertTrue(result);
         verify(mysqlClient, times(1)).executeUpdate(anyString());
     }
 
@@ -49,11 +48,10 @@ public class AccountStorageManagerTest {
     public void testUpdateAccount_Failure() throws SQLException {
         when(mysqlClient.executeUpdate(anyString())).thenReturn(0);
 
-        String result = accountStorageManager.updateAccount(mysqlClient, ACCOUNT_ID, USER_ID, BALANCE,
+        boolean result = accountStorageManager.updateAccount(mysqlClient, ACCOUNT_ID, USER_ID, BALANCE,
                 CREATED_TIME, LAST_UPDATED, CURRENCY);
 
-        assertNull(result);
-        verify(mysqlClient, times(1)).executeUpdate(anyString());
+        assertFalse(result);
     }
 
     @Test

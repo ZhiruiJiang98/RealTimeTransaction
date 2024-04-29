@@ -29,6 +29,10 @@ public class TransactionStorageManager {
         try{
             LOGGER.info("Executing getTransactionCount query: " + TransactionQueries.getTransactionCount(messageId));
             String query = TransactionQueries.getTransactionCount(messageId);
+            ResultSet rs = client.executeQuery(query);
+            if(rs.next()){
+                return rs.getInt(1);
+            }
             return client.executeQuery(query).getInt(1);
 
         } catch (SQLException ex) {
@@ -43,7 +47,7 @@ public class TransactionStorageManager {
             String query = TransactionQueries.creditOrDebitStatus(accountId);
             ResultSet rs = client.executeQuery(query);
             if(rs.next()){
-                return rs.getString("creditOrDebit");
+                return rs.getString("debitOrCredit");
             }
             return null;
         } catch (SQLException ex) {

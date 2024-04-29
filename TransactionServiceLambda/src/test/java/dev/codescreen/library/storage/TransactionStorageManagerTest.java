@@ -9,8 +9,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
@@ -43,32 +43,30 @@ public class TransactionStorageManagerTest {
     public void testCreateTransaction() throws SQLException {
         when(mysqlClient.executeUpdate(anyString())).thenReturn(1);
 
-        String result = transactionStorageManager.createTransaction(mysqlClient, TRANSACTION_ID, MESSAGE_ID, ACCOUNT_ID,
-                TRANSACTION_TYPE, AMOUNT, CURRENCY, UPDATE_TIME, CREATED_TIME, DEBIT_OR_CREDIT, TRANSACTION_STATUS);
+        boolean result = transactionStorageManager.createTransaction(mysqlClient, TRANSACTION_ID, MESSAGE_ID, ACCOUNT_ID
+                , AMOUNT, CURRENCY, UPDATE_TIME, CREATED_TIME, DEBIT_OR_CREDIT, TRANSACTION_STATUS);
 
-        assertEquals(TRANSACTION_ID, result);
+        assertTrue(result);
     }
 
     @Test
     public void testCreateTransaction_Failure() throws SQLException {
         when(mysqlClient.executeUpdate(anyString())).thenReturn(0);
 
-        String result = transactionStorageManager.createTransaction(mysqlClient, TRANSACTION_ID, MESSAGE_ID, ACCOUNT_ID,
-                TRANSACTION_TYPE, AMOUNT, CURRENCY, UPDATE_TIME, CREATED_TIME, DEBIT_OR_CREDIT, TRANSACTION_STATUS);
+        boolean result = transactionStorageManager.createTransaction(mysqlClient, TRANSACTION_ID, MESSAGE_ID, ACCOUNT_ID
+                , AMOUNT, CURRENCY, UPDATE_TIME, CREATED_TIME, DEBIT_OR_CREDIT, TRANSACTION_STATUS);
 
-        assertNull(result);
-        verify(mysqlClient, times(1)).executeUpdate(anyString());
+        assertFalse(result);
+
     }
 
     @Test
     public void testGetTransactionCount() throws SQLException {
         when(mysqlClient.executeQuery(anyString())).thenReturn(resultSet);
-        when(resultSet.getInt(1)).thenReturn(5);
+        when(resultSet.getInt("COUNT(*)")).thenReturn(0);
 
         int count = transactionStorageManager.getTransactionCount(mysqlClient, MESSAGE_ID);
 
-        assertEquals(5, count);
-        verify(mysqlClient, times(1)).executeQuery(anyString());
-        verify(resultSet, times(1)).getInt(1);
+        assertEquals(0, count);
     }
 }

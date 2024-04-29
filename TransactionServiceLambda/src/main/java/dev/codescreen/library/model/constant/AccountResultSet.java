@@ -10,8 +10,8 @@ public enum AccountResultSet {
     BALANCE("balance", "string"),
     @SerializedName("createdTime")
     CREATED_TIME("createdTime", "string"),
-    @SerializedName("lastUpdated")
-    LAST_UPDATED("lastUpdated", "string"),
+    @SerializedName("updatedTime")
+    UPDATED_TIME("updatedTime", "string"),
     @SerializedName("currency")
     CURRENCY("currency", "string");
     public final String name;

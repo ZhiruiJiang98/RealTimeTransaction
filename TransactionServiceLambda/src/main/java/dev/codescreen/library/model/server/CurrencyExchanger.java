@@ -1,5 +1,7 @@
 package dev.codescreen.library.model.server;
 
+import org.javamoney.moneta.Money;
+
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
@@ -11,21 +13,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class CurrencyExchanger {
-    private final ConcurrentHashMap<String, CurrencyConversion> cache = new ConcurrentHashMap<>();
-    private final long cacheDuration = TimeUnit.MINUTES.toMillis(10);  // Cache duration of 10 minutes
-    private final ConcurrentHashMap<String, Long> cacheTimes = new ConcurrentHashMap<>();
 
     public MonetaryAmount exchange(String requiredCurrency, String currentCurrency, String currentAmount) {
         try {
             CurrencyUnit required = Monetary.getCurrency(requiredCurrency);
             CurrencyUnit current = Monetary.getCurrency(currentCurrency);
-
             MonetaryAmount currentMonetaryAmount = Monetary.getDefaultAmountFactory()
                     .setCurrency(current)
-                    .setNumber(new BigDecimal(currentAmount))
+                    .setNumber(Double.valueOf(currentAmount))
                     .create();
 
-            CurrencyConversion conversion = getConversionWithCaching(requiredCurrency);
+            // Perform the currency conversion using the default provider chain
+            CurrencyConversion conversion = MonetaryConversions.getConversion(required);
 
             return currentMonetaryAmount.with(conversion);
         } catch (CurrencyConversionException e) {
@@ -34,16 +33,4 @@ public class CurrencyExchanger {
         }
     }
 
-    private CurrencyConversion getConversionWithCaching(String currencyCode) {
-        long currentTime = System.currentTimeMillis();
-        cacheTimes.putIfAbsent(currencyCode, 0L);
-
-        if (currentTime - cacheTimes.get(currencyCode) > cacheDuration) {
-            CurrencyConversion conversion = MonetaryConversions.getConversion(currencyCode);
-            cache.put(currencyCode, conversion);
-            cacheTimes.put(currencyCode, currentTime);
-        }
-
-        return cache.get(currencyCode);
-    }
 }

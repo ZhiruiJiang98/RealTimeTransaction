@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AccountQueries {
-    public static String getAccountCount() {
-        return "SELECT COUNT(*) FROM Account";
+    public static String getAccountCount(String userId) {
+        return String.format("SELECT COUNT(id) FROM Account WHERE userId = '%s'", userId);
     }
 
     public static String updateAccountById(String userId, String accountId, Map<AccountResultSet, Object> attributes) {
@@ -20,7 +20,7 @@ public class AccountQueries {
                 " WHERE userId='" + userId + "' AND accountId='" + accountId + "'";
     }
     public static String getAccountById(String userId, String accountId) {
-        return "SELECT * FROM Account WHERE userId='" + userId + "'";
+        return "SELECT * FROM Account WHERE userId='" + userId + "';";
     }
 
 }
