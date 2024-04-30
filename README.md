@@ -50,21 +50,21 @@ We are looking for attention in the following areas:
 <br> `CREATE DATABASE CurrentInterviewDB;`
 3. Synchronize the schema 
 <br> There's two ways to do so. You can try both way
-4. Manually implement data 
-- 4.1 Copy and paste the schemas' file in 
-<br>`~/<your-root>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema`
-<br> copy and paste to the sql terminal or using `SOURCE` command
-5. [Skeema.io Schema management tool](https://www.skeema.io/docs/examples/)
-- 5.1 [Install skeema.io](https://www.skeema.io/cli/download/)
-- 5.2 initialize the skeema
-<br> `skeema init -h localhost -u root -p`
-after that it should generate a `.skeema` folder in the root directory
-- 5.3 Put corresponding schemas (`User.sql, Account.sql, and Transaction.sql`) into the corresponding database's folder
-- 5.4 Diff and Push the schema
-<br> `skeema diff -p`
-<br> `skeema push -p`
-- 5.5 Facilitate the database with the data (`DBTestExmaple.sql`)
-- 5.6 modify the required environment variables in the `service.yml` file in the `TransactionService` folder
+   1. Manually implement data 
+      1. Copy and paste the schemas' file in 
+      <br>`~/<your-root>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema`
+      <br> copy and paste to the sql terminal or using `SOURCE` command
+   2. [Skeema.io Schema management tool](https://www.skeema.io/docs/examples/)
+      1. [Install skeema.io](https://www.skeema.io/cli/download/)
+      2. 3.2.2 initialize the skeema
+      <br> `skeema init -h localhost -u root -p`
+      after that it should generate a `.skeema` folder in the root directory
+      3. 3.2.3 Put corresponding schemas (`User.sql, Account.sql, and Transaction.sql`) into the corresponding database's folder
+      4. 3.2.4 Diff and Push the schema
+      <br> `skeema diff -p`
+      <br> `skeema push -p`
+4. Facilitate the database with the data (`DBTestExmaple.sql`)
+5. modify the required environment variables in the `service.yml` file in the `TransactionServiceLambda` folder
 
 
 ### Project setup
@@ -76,29 +76,30 @@ after that it should generate a `.skeema` folder in the root directory
 4. Build the project
 <br> `mvn clean install package`
 5. Starting docker container
+![img.png](Images/start_docker_container_image.png)
 ### Lambda function local testing
 1. Start AWS local API
 <br>`sam local start-api`
  <br>Output should be look like this
 <br>![img.png](Images/start_local_api.png)
-* You can test the API endpoint with the following curl command or using Postman
+2. test the API endpoint with the following curl command or using Postman
 
-1. `http://<your-local-ip>/ping`
-* CURL 
-<br> `curl -X GET http://<your-local-ip>/ping`
+   1. `http://<your-local-ip>/ping`
+      1. CURL 
+      <br> `curl -X GET http://<your-local-ip>/ping`
 
-* POSTMAN
-<br> ![img_4.png](Images/img_4.png)
-2. `http://<your-local-ip>/authorization/{messageId}`
-* CRUL
-<br> `CRUL -X PUT http://<your-local-ip>/authorization/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
-* POSTMAN
-<br> ![img.png](Images/AuthorizationImage.png)
-3. `http://<your-local-ip>/load/{messageId}`
-* CRUL 
-<br> `CRUL -X PUT http://<your-local-ip>/load/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
-* POSTMAN
-<br> ![img.png](Images/Postman_Load_Example.png)
+      2. POSTMAN
+      <br> ![img_4.png](Images/img_4.png)
+   2. `http://<your-local-ip>/authorization/{messageId}`
+      1. CRUL
+      <br> `CRUL -X PUT http://<your-local-ip>/authorization/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
+      2. POSTMAN
+      <br> ![img.png](Images/AuthorizationImage.png)
+   3. `http://<your-local-ip>/load/{messageId}`
+      1. CRUL 
+         <br> `CRUL -X PUT http://<your-local-ip>/load/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
+      2. POSTMAN
+      <br> ![img.png](Images/Postman_Load_Example.png)
 
 ### Test Case
 
