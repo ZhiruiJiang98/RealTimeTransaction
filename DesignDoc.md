@@ -115,6 +115,7 @@ example:
 {
   "messageId": "string",
   "userId": "string",
+  "responseCode": "string",
   "balance": {
     "amount": "string",
     "currency": "string",

@@ -68,9 +68,9 @@ after that it should generate a `.skeema` folder in the root directory
 
 
 ### Project setup
-1. Facilicate database with `DBTestExample.sql` in `~/<your-root-folder>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema
-2. `cd` to the lambda folder (Reminder: Do not run mvn under the CodeScreen folder)
-<br> `cd ~/<your-root>/CodeScreen_9hlefyhj/TransactionService/TransactionServiceLambda/`
+1. Facilitate database with Mysql in `~/<your-root-folder>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema/DBTestExample.sql`
+2. `cd` to the lambda folder (Reminder: Do not run mvn under the CodeScreen's folder)
+<br> `cd ~/<your-root>/CodeScreen_9hlefyhj/TransactionServiceLambda/`
 3. Modify the environment variables in the `service.yml` file
 <br> ![img.png](Images/template_yml_example.png)
 4. Build the project
@@ -79,7 +79,7 @@ after that it should generate a `.skeema` folder in the root directory
 ### Lambda function local testing
 1. Start AWS local API
 <br>`sam local start-api`
-##### <br> Output should be look like this
+ <br>Output should be look like this
 <br>![img.png](Images/start_local_api.png)
 * You can test the API endpoint with the following curl command or using Postman
 
