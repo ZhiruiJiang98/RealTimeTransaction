@@ -71,9 +71,11 @@ after that it should generate a `.skeema` folder in the root directory
 1. Facilicate database with `DBTestExample.sql` in `~/<your-root-folder>/CodeScreen_9hlefyhj/DatabaseSchema/MysqlSchema
 2. `cd` to the lambda folder (Reminder: Do not run mvn under the CodeScreen folder)
 <br> `cd ~/<your-root>/CodeScreen_9hlefyhj/TransactionService/TransactionServiceLambda/`
-3. Build the project
+3. Modify the environment variables in the `service.yml` file
+<br> ![img.png](Images/template_yml_example.png)
+4. Build the project
 <br> `mvn clean install package`
-4. Starting docker container
+5. Starting docker container
 ### Lambda function local testing
 1. Start AWS local API
 <br>`sam local start-api`
