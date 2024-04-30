@@ -116,7 +116,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 client.close();
                 return constructResponse(
                         ActionResponseStatus.OK,
-                        "Transaction created successfully...",
+                        "",
                         buildAuthorizationTransactionResponse(request, currentBalanceAfterTransaction, currentAccount.getCurrency()),
                         getActionName()
                 );

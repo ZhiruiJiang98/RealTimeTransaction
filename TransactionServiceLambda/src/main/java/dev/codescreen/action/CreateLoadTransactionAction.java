@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import javax.money.MonetaryAmount;
 import javax.money.UnknownCurrencyException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
@@ -95,13 +96,13 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
                     request.getTransactionAmount().getAmount());
             BigDecimal currentTransactionAmount = exchangeAmount.getNumber().numberValue(BigDecimal.class);
             TransactionDto currentTransaction= createTransactionDto(request, currentAccount);
-            String currentBalanceAfterTransaction = currentTransactionAmount.add(currentBalance).toString();
+            String currentBalanceAfterTransaction = currentTransactionAmount.add(currentBalance).setScale(2, RoundingMode.CEILING).toString();
             if(processTransaction(currentTransaction, currentAccount, currentBalanceAfterTransaction)){
                 client.commit();
                 client.close();
                 return constructResponse(
                         ActionResponseStatus.OK,
-                        "Transaction successful",
+                        "",
                         LoadTransactionResponse.builder()
                                 .userId(request.getUserId())
                                 .messageId(request.getMessageId())
