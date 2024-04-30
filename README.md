@@ -97,6 +97,36 @@ after that it should generate a `.skeema` folder in the root directory
 * POSTMAN
 <br> ![img.png](Images/Postman_Load_Example.png)
 
+### Test Case
+
+#### Here's some test cases for you  
+
+* Load (Same Currency)
+
+```json
+{"messageId": "3397afd2-90e8-49c0-8268-acec071d7117", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "10000.00", "currency": "USD", "debitOrCredit": "CREDIT"}}
+```
+
+* Load (Different Currency)
+
+```json
+{"messageId": "83fe04a0-79fe-4e95-b840-e20d7a281d6e", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "10000.00", "currency": "EUR", "debitOrCredit": "CREDIT"}}
+```
+
+* Authorization (Same Currency)
+
+```json
+{"messageId": "50e70c62-e480-49fc-bc1b-e991ac672173", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "100.00", "currency": "USD", "debitOrCredit": "DEBIT"}}
+
+```
+
+* Authorization (Different Currency)
+
+```json
+{"messageId": "4f9c8417-c8b8-4333-a1f1-c9bc9d3d13cd", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "100.00", "currency": "EUR", "debitOrCredit": "DEBIT"}}
+```
+
+
 ## Design considerations
 * Here's my design considerations:
 [DesignDoc.md](DesignDoc.md)
