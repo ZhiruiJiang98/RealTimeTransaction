@@ -44,7 +44,42 @@ two types of transactions:
 * status (VARCHAR): The status of the transaction (PENDING, APPROVED, DECLINED)
 
 ### API Design:
-#### PUT /api/load/{messageId}
+
+#### Currency Exchange
+The transaction service supports currency exchange for transactions involving different currencies. The currency exchange functionality is integrated with the `/load/{messageId}` and `/authorization/{messageId}` endpoints.
+
+1. Exchange Rates:
+  - The system integrates with an external currency exchange rate provider to fetch real-time exchange rates.
+  - Exchange rates are periodically updated to reflect the current market rates.
+  - The fetched exchange rates are cached in the system to minimize the need for frequent external API calls.
+
+2. Currency Conversion:
+  - When a transaction is initiated with a currency different from the user's account currency, the system performs currency conversion.
+  - The conversion is based on the real-time exchange rate fetched from the external provider.
+  - The converted amount is used for updating the account balance.
+
+3. API Integration:
+  - The `/load/{messageId}` and `/authorization/{messageId}` endpoints accept transactions in different currencies.
+  - The request payload includes the transaction currency and amount.
+  - The response payload includes the updated account balance in the account currency.
+
+
+#### GET /ping
+* Response Body:
+```json
+{
+  "serverTime": "string"
+}
+```
+
+example:
+```json
+{
+  "serverTime": "2021-10-10T10:00:00Z"
+}
+```
+
+#### PUT /load/{messageId}
 * Parameter: `messageId: String`
 * Request Body:
 ```json
@@ -78,8 +113,6 @@ example:
 ```json
  
 {
-  "ActionResponseStatus": "String",
- "data": {
   "messageId": "string",
   "userId": "string",
   "balance": {
@@ -87,16 +120,11 @@ example:
     "currency": "string",
     "debitOrCredit": "string"
   }
-},
-  "errorMessage": "String",
-  "ActionName": "String"
 }
 ```
 example: 
 ```json
 {
-"ActionResponseStatus": "OK",
-"data": {
   "messageId": "55210c62-e480-asdf-bc1b-e991ac67FSAC",
   "userId": "2226e2f9-ih09-46a8-958f-d659880asdfD",
   "responseCode": "APPROVED",
@@ -105,13 +133,10 @@ example:
     "currency": "USD",
     "debitOrCredit": "CREDIT"
   }
-},
-  "errorMessage": "",
-  "ActionName": "CreateLoadTransactionAction"
 }
 ```
 
-#### PUT /api/authorize/{messageId}
+#### PUT /authorize/{messageId}
 
 * Parameters: 'messageId'
 * Request Body:
@@ -120,8 +145,7 @@ example:
     {
     "messageId": "string",
     "userId": "string",
-  "responseCode": "string",
-    "transactionAmount": {
+    "balance": {
         "amount": "string",
         "currency": "string",
         "debitOrCredit": "string"
@@ -134,8 +158,7 @@ example:
     {
     "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
     "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
-    "responseCode": "APPROVED",
-    "transactionAmount": {
+    "balance": {
         "amount": "0",
         "currency": "USD",
         "debitOrCredit": "CREDIT"
@@ -145,39 +168,44 @@ example:
 
 * Response Body:
     ```json
-    {
-  "ActionResponseStatus": "String",
-   "data":{ 
+  { 
   "messageId": "string",
     "userId": "string",
-  "responseCode": "string",
-    "transactionAmount": {
+    "responseCode": "string",
+    "balance": {
         "amount": "string",
         "currency": "string",
         "debitOrCredit": "string"
       }
-  },
-  "errorMessage": "String",
-    "ActionName": "String"
-   }
+  }
     ```
   
   example:
   ```json
-  {
-  "ActionResponseStatus": "OK",
-   "data":{ "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
+  { "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
     "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
-    "responseCode": "APPROVED",
-      "transactionAmount": {
+      "responseCode": "APPROVED",
+      "balance": {
         "amount": "0",
         "currency": "USD",
         "debitOrCredit": "DEBIT"
-    }},
-    "errorMessage": "",
-    "ActionName": "CreateAuthorizationTransactionAction"
+    }
   }
   ```
+#### Server Error
+```json
+{
+  "message": "string",
+  "error": "string"
+}
+```
+example:
+```json
+{
+  "message": "Internal Server Error",
+  "error": "500"
+}
+```
 
 ### Open Question
 
