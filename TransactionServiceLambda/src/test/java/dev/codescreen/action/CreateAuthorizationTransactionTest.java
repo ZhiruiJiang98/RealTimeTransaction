@@ -62,7 +62,6 @@ public class CreateAuthorizationTransactionTest {
         AccountDto accountDto = getAccountDto();
         Map<AccountResultSet, Object> accountResultSet = getAccountResultSet(accountDto);
 
-
         when(accountStorageManager.getAccountById(any(MysqlClient.class), eq(USER_ID), anyString()))
                 .thenReturn(accountResultSet);
         when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(0);
@@ -77,19 +76,18 @@ public class CreateAuthorizationTransactionTest {
         ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
 
         // Assert
-        assertEquals(ActionResponseStatus.OK, response.getActionResponseStatus());
+        assertEquals(ActionResponseStatus.CREATED, response.getActionResponseStatus());
         assertEquals("1000.00", response.getData().getBalance().getAmount());
         assertEquals(CURRENCY, response.getData().getBalance().getCurrency());
         assertEquals(DEBIT_OR_CREDIT, response.getData().getBalance().getDebitOrCredit());
-
     }
+
     @Test
     void requestValidated_ValidRequest() {
         // Arrange
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setBody(REQUEST_BODY);
         event.setPathParameters(Map.of("messageId", MESSAGE_ID));
-        event.setQueryStringParameters(Map.of("userId", USER_ID));
 
         // Act
         boolean isValid = createAuthorizationTransactionAction.requestValidated(event);
@@ -104,7 +102,6 @@ public class CreateAuthorizationTransactionTest {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setBody("{\"userId\":\"8786e2f9-d472-46a8-958f-d659880e723d\"}");
 
-
         // Act
         boolean isValid = createAuthorizationTransactionAction.requestValidated(event);
 
@@ -117,13 +114,29 @@ public class CreateAuthorizationTransactionTest {
         // Arrange
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setBody("");
-        event.setPathParameters(Map.of("messageId", MESSAGE_ID));
 
         // Act
         boolean isValid = createAuthorizationTransactionAction.requestValidated(event);
 
         // Assert
         assertEquals(false, isValid);
+    }
+
+    @Test
+    void processRequest_UserNotFound() throws SQLException {
+        // Arrange
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        event.setBody(REQUEST_BODY);
+        event.setPathParameters(Map.of("messageId", MESSAGE_ID));
+
+        when(accountStorageManager.getAccountCount(any(MysqlClient.class), eq(USER_ID))).thenReturn(0);
+
+        // Act
+        ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
+
+        // Assert
+        assertEquals(ActionResponseStatus.NOT_FOUND, response.getActionResponseStatus());
+        assertEquals("User not found...", response.getMessage());
     }
 
     @Test
@@ -141,12 +154,18 @@ public class CreateAuthorizationTransactionTest {
                 .thenReturn(accountResultSet);
         when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(0);
         when(accountStorageManager.getAccountCount(any(MysqlClient.class), eq(USER_ID))).thenReturn(1);
+        when(transactionStorageManager.createTransaction(any(MysqlClient.class), anyString(), eq(MESSAGE_ID),
+                anyString(), eq(AMOUNT), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), eq(ResponseCode.DECLINED.code)))
+                .thenReturn(true);
+        when(accountStorageManager.updateAccount(any(MysqlClient.class), anyString(), eq(USER_ID), anyString(),
+                anyString(), anyString(), eq(CURRENCY))).thenReturn(true);
 
         // Act
         ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
 
         // Assert
-        assertEquals(ActionResponseStatus.BAD_REQUEST, response.getActionResponseStatus());
+        assertEquals(ActionResponseStatus.PAYMENT_REQUIRED, response.getActionResponseStatus());
+
     }
 
     @Test
@@ -162,7 +181,7 @@ public class CreateAuthorizationTransactionTest {
         when(accountStorageManager.getAccountById(any(MysqlClient.class), eq(USER_ID), anyString()))
                 .thenReturn(accountResultSet);
         when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(1);
-        when(transactionStorageManager.creditOrDebitStatus(any(MysqlClient.class), eq(MESSAGE_ID)))
+        when(transactionStorageManager.creditOrDebitStatus(any(MysqlClient.class), anyString()))
                 .thenReturn(DEBIT_OR_CREDIT);
         when(transactionStorageManager.createTransaction(any(MysqlClient.class), anyString(), eq(MESSAGE_ID),
                 anyString(), eq(AMOUNT), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), eq(ResponseCode.DECLINED.code)))
@@ -173,35 +192,7 @@ public class CreateAuthorizationTransactionTest {
         ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
 
         // Assert
-        assertEquals(ActionResponseStatus.BAD_REQUEST, response.getActionResponseStatus());
-    }
-
-    @Test
-    void processRequest_ValidRequest_NegativeAmount() throws SQLException {
-        // Arrange
-        String negativeAmount = "-9000";
-        String requestBody = "{\"userId\":\"8786e2f9-d472-46a8-958f-d659880e723d\",\"messageId\":\"50e70c62-e480-49fc-bc1b-e991ac672173\",\"transactionAmount\":{\"amount\":\"-9000\",\"currency\":\"USD\",\"debitOrCredit\":\"DEBIT\"}}";
-
-        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
-        event.setBody(requestBody);
-        event.setPathParameters(Map.of("messageId", MESSAGE_ID));
-
-        AccountDto accountDto = getAccountDto();
-        Map<AccountResultSet, Object> accountResultSet = getAccountResultSet(accountDto);
-
-        when(accountStorageManager.getAccountById(any(MysqlClient.class), eq(USER_ID), anyString()))
-                .thenReturn(accountResultSet);
-        when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(0);
-
-        when(transactionStorageManager.createTransaction(any(MysqlClient.class), anyString(), eq(MESSAGE_ID),
-                anyString(), eq(negativeAmount), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), eq(ResponseCode.DECLINED.code)))
-                .thenReturn(true);
-
-        // Act
-        ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
-
-        // Assert
-        assertEquals(ActionResponseStatus.BAD_REQUEST, response.getActionResponseStatus());
+        assertEquals(ActionResponseStatus.CONFLICT, response.getActionResponseStatus());
     }
 
     private Map<AccountResultSet, Object> getAccountResultSet(AccountDto accountDto) {

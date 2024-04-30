@@ -3,6 +3,7 @@ package dev.codescreen.action;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import dev.codescreen.library.model.constant.AccountResultSet;
 import dev.codescreen.library.model.constant.ActionResponseStatus;
+import dev.codescreen.library.model.constant.ResponseCode;
 import dev.codescreen.library.model.dto.AccountDto;
 import dev.codescreen.library.model.server.ActionResponse;
 import dev.codescreen.library.model.server.LoadTransactionResponse;
@@ -15,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class CreateLoadTransactionActionTest {
                 .thenReturn(accountResultSet);
         when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(0);
         when(transactionStorageManager.createTransaction(any(MysqlClient.class), anyString(), eq(MESSAGE_ID),
-                anyString(), eq(AMOUNT), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), anyString()))
+                anyString(), eq(AMOUNT), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), eq(ResponseCode.APPROVED.code)))
                 .thenReturn(true);
         when(accountStorageManager.updateAccount(any(MysqlClient.class), anyString(), eq(USER_ID), anyString(),
                 anyString(), anyString(), eq(CURRENCY))).thenReturn(true);
@@ -72,7 +72,52 @@ public class CreateLoadTransactionActionTest {
         ActionResponse<LoadTransactionResponse> response = createLoadTransactionAction.processRequest(event);
 
         // Assert
-        assertEquals(ActionResponseStatus.OK, response.getActionResponseStatus());
+        assertEquals(ActionResponseStatus.CREATED, response.getActionResponseStatus());
+        assertEquals("200.23", response.getData().getBalance().getAmount());
+        assertEquals(CURRENCY, response.getData().getBalance().getCurrency());
+        assertEquals(DEBIT_OR_CREDIT, response.getData().getBalance().getDebitOrCredit());
+    }
+
+    @Test
+    void processRequest_UserNotFound() throws SQLException {
+        // Arrange
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        event.setBody(REQUEST_BODY);
+        event.setPathParameters(Map.of("messageId", MESSAGE_ID));
+
+        when(accountStorageManager.getAccountCount(any(MysqlClient.class), eq(USER_ID))).thenReturn(0);
+
+        // Act
+        ActionResponse<LoadTransactionResponse> response = createLoadTransactionAction.processRequest(event);
+        // Assert
+        assertEquals(ActionResponseStatus.NOT_FOUND, response.getActionResponseStatus());
+        assertEquals("Account not found", response.getMessage());
+    }
+
+    @Test
+    void processRequest_DuplicateTransaction() throws SQLException {
+        // Arrange
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        event.setBody(REQUEST_BODY);
+        event.setPathParameters(Map.of("messageId", MESSAGE_ID));
+
+        AccountDto accountDto = getAccountDto();
+        Map<AccountResultSet, Object> accountResultSet = getAccountResultSet(accountDto);
+
+        when(accountStorageManager.getAccountCount(any(MysqlClient.class), eq(USER_ID))).thenReturn(1);
+        when(accountStorageManager.getAccountById(any(MysqlClient.class), eq(USER_ID), anyString()))
+                .thenReturn(accountResultSet);
+        when(transactionStorageManager.getTransactionCount(any(MysqlClient.class), eq(MESSAGE_ID))).thenReturn(1);
+        when(transactionStorageManager.creditOrDebitStatus(any(MysqlClient.class), anyString()))
+                .thenReturn(DEBIT_OR_CREDIT);
+        when(transactionStorageManager.createTransaction(any(MysqlClient.class), anyString(), eq(MESSAGE_ID),
+                anyString(), eq(AMOUNT), eq(CURRENCY), anyString(), anyString(), eq(DEBIT_OR_CREDIT), eq(ResponseCode.DECLINED.code)))
+                .thenReturn(true);
+        // Act
+        ActionResponse<LoadTransactionResponse> response = createLoadTransactionAction.processRequest(event);
+
+        // Assert
+        assertEquals(ActionResponseStatus.CONFLICT, response.getActionResponseStatus());
     }
 
     @Test
