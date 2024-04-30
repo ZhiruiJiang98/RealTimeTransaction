@@ -26,7 +26,9 @@ public interface AbstractHandler<I, O> extends RequestHandler<I, O> {
         jsonResponse.setBody(gson.toJson( ApiResponseBody.<O>builder()
                 .status(actionResponse.getStatus())
                 .data(actionResponse.getData())
-                .errorMessage(actionResponse.getErrorMessage()).build()));
+                .errorMessage(actionResponse.getErrorMessage())
+                .actionName(actionResponse.getActionName())
+                .build()));
 
         return jsonResponse;
     }

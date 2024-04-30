@@ -10,4 +10,5 @@ public class ApiResponseBody <T>{
     private Status status;
     private T data;
     private String errorMessage;
+    private String actionName;
 }
