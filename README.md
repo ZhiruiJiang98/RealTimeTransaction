@@ -77,7 +77,7 @@ after that it should generate a `.skeema` folder in the root directory
 * Start AWS local API
 <br>`sam local start-api`
 ##### <br> Output should be look like this
-<br>![img.png](Images/img.png)
+<br>![img.png](Images/start_local_api.png)
 * You can test the API endpoint with the following curl command or using Postman
 
 1. `http://<your-local-ip>/ping`

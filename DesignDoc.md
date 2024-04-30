@@ -45,9 +45,8 @@ two types of transactions:
 
 ### API Design:
 #### PUT /api/load/{messageId}
-* Parameters: 'messageId'
+* Parameter: `messageId: String`
 * Request Body:
-
 ```json
 {
   "messageId": "string",
@@ -60,7 +59,9 @@ two types of transactions:
 }
 ```
 example:
+<br>`messageId: 50e70c62-e480-49fc-bc1b-e991ac672173`
 ```json 
+
 {
   "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
   "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
@@ -128,6 +129,7 @@ example:
     }
     ```
   example: 
+<br>`messageId: 50e70c62-e480-49fc-bc1b-e991ac672173`
   ```json
     {
     "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
