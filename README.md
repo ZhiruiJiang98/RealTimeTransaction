@@ -85,18 +85,18 @@ after that it should generate a `.skeema` folder in the root directory
 
 1. `http://<your-local-ip>/ping`
 * CURL 
-<br> `curl GET http://<your-local-ip>/ping`
+<br> `curl -X GET http://<your-local-ip>/ping`
 
 * POSTMAN
 <br> ![img_4.png](Images/img_4.png)
 2. `http://<your-local-ip>/authorization/{messageId}`
 * CRUL
-<br> `CRUL PUT http://<your-local-ip>/authorization/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
+<br> `CRUL -X PUT http://<your-local-ip>/authorization/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
 * POSTMAN
 <br> ![img.png](Images/AuthorizationImage.png)
 3. `http://<your-local-ip>/load/{messageId}`
 * CRUL 
-<br> `CRUL PUT http://<your-local-ip>/load/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
+<br> `CRUL -X PUT http://<your-local-ip>/load/{messageId} -d '{"messageId": "string","userId": "string","transactionAmount": {"amount": "string","currency": "string","debitOrCredit": "string"}}`
 * POSTMAN
 <br> ![img.png](Images/Postman_Load_Example.png)
 
