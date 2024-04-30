@@ -44,7 +44,7 @@ two types of transactions:
 * status (VARCHAR): The status of the transaction (PENDING, APPROVED, DECLINED)
 
 ### API Design:
-#### PUT /api/account/load/{messageId}
+#### PUT /api/load/{messageId}
 * Parameters: 'messageId'
 * Request Body:
 
@@ -75,7 +75,10 @@ example:
 * Response Body:
 
 ```json
+ 
 {
+  "ActionResponseStatus": "String",
+ "data": {
   "messageId": "string",
   "userId": "string",
   "balance": {
@@ -83,11 +86,16 @@ example:
     "currency": "string",
     "debitOrCredit": "string"
   }
+},
+  "errorMessage": "String",
+  "ActionName": "String"
 }
 ```
 example: 
 ```json
 {
+"ActionResponseStatus": "OK",
+"data": {
   "messageId": "55210c62-e480-asdf-bc1b-e991ac67FSAC",
   "userId": "2226e2f9-ih09-46a8-958f-d659880asdfD",
   "responseCode": "APPROVED",
@@ -96,10 +104,13 @@ example:
     "currency": "USD",
     "debitOrCredit": "CREDIT"
   }
+},
+  "errorMessage": "",
+  "ActionName": "CreateLoadTransactionAction"
 }
 ```
 
-#### PUT /api/account/authorize/{messageId}
+#### PUT /api/authorize/{messageId}
 
 * Parameters: 'messageId'
 * Request Body:
@@ -133,28 +144,36 @@ example:
 * Response Body:
     ```json
     {
-    "messageId": "string",
+  "ActionResponseStatus": "String",
+   "data":{ 
+  "messageId": "string",
     "userId": "string",
   "responseCode": "string",
     "transactionAmount": {
         "amount": "string",
         "currency": "string",
         "debitOrCredit": "string"
-    }
+      }
+  },
+  "errorMessage": "String",
+    "ActionName": "String"
    }
     ```
   
   example:
   ```json
   {
-    "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
+  "ActionResponseStatus": "OK",
+   "data":{ "messageId": "50e70c62-e480-49fc-bc1b-e991ac672173",
     "userId": "8786e2f9-d472-46a8-958f-d659880e723d",
     "responseCode": "APPROVED",
       "transactionAmount": {
         "amount": "0",
         "currency": "USD",
-        "debitOrCredit": "String"
-    }
+        "debitOrCredit": "DEBIT"
+    }},
+    "errorMessage": "",
+    "ActionName": "CreateAuthorizationTransactionAction"
   }
   ```
 
