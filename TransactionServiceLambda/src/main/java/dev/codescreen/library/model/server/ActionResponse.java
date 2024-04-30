@@ -9,9 +9,11 @@ import lombok.Data;
 @Builder
 public class ActionResponse <T>{
     private ActionResponseStatus actionResponseStatus;
-    private Status status;
+    private Status getResponseStatus;
     private String message;
     private String errorMessage;
     private T data;
     private String actionName;
+    private String serverTime;
+    private String code;
 }

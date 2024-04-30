@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import dev.codescreen.library.model.constant.AccountResultSet;
 import dev.codescreen.library.model.constant.ActionResponseStatus;
+import dev.codescreen.library.model.constant.ActionType;
 import dev.codescreen.library.model.constant.ResponseCode;
 import dev.codescreen.library.model.dto.AccountDto;
 import dev.codescreen.library.model.dto.TransactionDto;
@@ -58,6 +59,7 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
     public ActionResponse<LoadTransactionResponse> processRequest(APIGatewayProxyRequestEvent event) throws SQLException{
         if(!requestValidated(event)){
             return constructResponse(
+                    ActionType.LOAD.actionName,
                     ActionResponseStatus.BAD_REQUEST,
                     "Invalid request",
                     null,
@@ -76,6 +78,7 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
             AccountDto currentAccount = getCurrentAccount(request.getUserId());
             if(currentAccount == null){
                 return constructResponse(
+                        ActionType.LOAD.actionName,
                         ActionResponseStatus.NOT_FOUND,
                         "Account not found",
                         null,
@@ -101,7 +104,8 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
                 client.commit();
                 client.close();
                 return constructResponse(
-                        ActionResponseStatus.OK,
+                        ActionType.LOAD.actionName,
+                        ActionResponseStatus.CREATED,
                         "",
                         LoadTransactionResponse.builder()
                                 .userId(request.getUserId())
@@ -118,7 +122,8 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
             } else {
                 this.client.close();
                 return constructResponse(
-                        ActionResponseStatus.BAD_REQUEST,
+                        ActionType.LOAD.actionName,
+                        ActionResponseStatus.INTERNAL_SERVER_ERROR,
                         "Error occurred while processing request...",
                         null,
                         getActionName()
@@ -129,7 +134,6 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
         } catch (SQLException ex){
             client.rollback();
             client.close();
-            LOGGER.error(ex.getMessage());
             LOGGER.error("SQL Exception: " + ex.getMessage());
             throw ex;
         }
@@ -231,8 +235,9 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
 
             client.close();
             return constructResponse(
-                    ActionResponseStatus.BAD_REQUEST,
-                    "message duplicated, please check your messageId....",
+                    ActionType.LOAD.actionName,
+                    ActionResponseStatus.CONFLICT,
+                    "Message duplicated, please check your messageId....",
                     null,
                     getActionName()
             );
@@ -240,20 +245,12 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
 
         client.close();
 
-        // If thea transaction already exist, we will return a declined response
+        // If the transaction already exist, we will return a declined response
         return constructResponse(
-                ActionResponseStatus.BAD_REQUEST,
-                "Transaction already exist...",
-                LoadTransactionResponse.builder()
-                        .userId(request.getUserId())
-                        .messageId(request.getMessageId())
-                        .balance(
-                                Balance.builder()
-                                        .amount(currentAccount.getBalance())
-                                        .currency(currentAccount.getCurrency())
-                                        .debitOrCredit(recentCreditOrDebit)
-                                        .build()
-                        ).build(),
+                ActionType.LOAD.actionName,
+                ActionResponseStatus.INTERNAL_SERVER_ERROR,
+                "Error occurred while processing request...",
+                null,
                 getActionName()
         );
     }

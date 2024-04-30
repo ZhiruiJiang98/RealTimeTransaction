@@ -4,12 +4,14 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.google.gson.Gson;
 
+import dev.codescreen.library.model.constant.ActionResponseStatus;
 import dev.codescreen.library.model.server.ActionResponse;
 import dev.codescreen.library.model.server.ApiResponseBody;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+
 public interface AbstractHandler<I, O> extends RequestHandler<I, O> {
     default <O> APIGatewayProxyResponseEvent processActionResponse(Logger LOGGER, ActionResponse<O> actionResponse) {
         Gson gson = new Gson();
@@ -23,11 +25,21 @@ public interface AbstractHandler<I, O> extends RequestHandler<I, O> {
         jsonResponse.setStatusCode(actionResponse.getActionResponseStatus().statusCode);
         jsonResponse.setHeaders(headers);
 
-        jsonResponse.setBody(gson.toJson( ApiResponseBody.<O>builder()
-                .status(actionResponse.getStatus())
+        if (actionResponse.getActionResponseStatus().equals(ActionResponseStatus.OK) || actionResponse.getActionResponseStatus().equals(ActionResponseStatus.CREATED)) {
+            if (actionResponse.getServerTime() == null) {
+                jsonResponse.setBody(gson.toJson(actionResponse.getData()));
+            } else {
+                jsonResponse.setBody(gson.toJson(ApiResponseBody.<O>builder()
+                        .serverTime(actionResponse.getServerTime()).build()));
+            }
+            return jsonResponse;
+        }
+        jsonResponse.setBody(gson.toJson(ApiResponseBody.<O>builder()
+                .status(actionResponse.getGetResponseStatus())
                 .data(actionResponse.getData())
-                .errorMessage(actionResponse.getErrorMessage())
-                .actionName(actionResponse.getActionName())
+                .message(actionResponse.getMessage())
+                .code(actionResponse.getCode())
+                .message(actionResponse.getMessage())
                 .build()));
 
         return jsonResponse;

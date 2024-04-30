@@ -12,16 +12,35 @@ public interface AbstractAction<I, O> {
     public boolean requestValidated(I event);
 
     default ActionResponse<O> constructResponse(
+            String ActionType,
             ActionResponseStatus actionResponseStatus,
             String errorMessage,
             O data,
             String actionName
     ) {
+        if(actionResponseStatus.equals(ActionResponseStatus.BAD_REQUEST) ||
+                actionResponseStatus.equals(ActionResponseStatus.INTERNAL_SERVER_ERROR) ||
+                        actionResponseStatus.equals(ActionResponseStatus.NOT_FOUND) ||
+                actionResponseStatus.equals(ActionResponseStatus.UNAUTHORIZED) ||
+                                actionResponseStatus.equals(ActionResponseStatus.FORBIDDEN) ||
+                                        actionResponseStatus.equals(ActionResponseStatus.CONFLICT)){
+            return ActionResponse.<O>builder()
+                    .message(errorMessage)
+                    .actionResponseStatus(actionResponseStatus)
+                    .code(actionResponseStatus.statusCode.toString())
+                    .build();
+        }
+        if(ActionType.equals("ping")){
+            return ActionResponse.<O>builder()
+                    .serverTime((String)data)
+                    .actionResponseStatus(actionResponseStatus)
+                    .build();
+        }
         return ActionResponse.<O>builder()
-                .actionName(actionName)
                 .data(data)
-                .errorMessage(errorMessage)
                 .actionResponseStatus(actionResponseStatus)
+                .message(errorMessage)
+                .code(actionResponseStatus.statusCode.toString())
                 .build();
     }
 }

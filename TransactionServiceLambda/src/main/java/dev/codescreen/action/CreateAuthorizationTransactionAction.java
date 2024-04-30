@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import dev.codescreen.library.model.constant.AccountResultSet;
 import dev.codescreen.library.model.constant.ActionResponseStatus;
+import dev.codescreen.library.model.constant.ActionType;
 import dev.codescreen.library.model.constant.ResponseCode;
 import dev.codescreen.library.model.dto.AccountDto;
 import dev.codescreen.library.model.dto.TransactionDto;
@@ -59,6 +60,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
     public ActionResponse<AuthorizationTransactionResponse> processRequest(APIGatewayProxyRequestEvent event) throws SQLException {
         if (!requestValidated(event)) {
             return constructResponse(
+                    ActionType.AUTHORIZATION.actionName,
                     ActionResponseStatus.BAD_REQUEST,
                     "query parameter missing or data is not valid...",
                     null,
@@ -79,15 +81,16 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
 
             if (currentAccount == null) {
                 return constructResponse(
+                        ActionType.AUTHORIZATION.actionName,
                         ActionResponseStatus.NOT_FOUND,
-                        "Account not found...",
+                        "User not found...",
                         null,
                         getActionName()
                 );
             }
             //Check if transaction already exist
             if (isTransactionDuplicate(request.getMessageId())) {
-                LOGGER.info("Transaction has already been debited or credited");
+                LOGGER.info("Message duplicated...");
                 return handleDuplicateTransaction(request, currentAccount, currentTimestamp);
             }
 
@@ -115,7 +118,9 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 client.commit();
                 client.close();
                 return constructResponse(
-                        ActionResponseStatus.OK,
+                        ActionType.AUTHORIZATION.actionName,
+
+                        ActionResponseStatus.CREATED,
                         "",
                         buildAuthorizationTransactionResponse(request, currentBalanceAfterTransaction, currentAccount.getCurrency()),
                         getActionName()
@@ -123,7 +128,8 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             } else {
 
                 return constructResponse(
-                        ActionResponseStatus.BAD_REQUEST,
+                        ActionType.AUTHORIZATION.actionName,
+                        ActionResponseStatus.INTERNAL_SERVER_ERROR,
                         "Error occurred while processing request...",
                         null,
                         getActionName()
@@ -135,7 +141,8 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             client.close();
             LOGGER.error(ex.getMessage());
             return constructResponse(
-                    ActionResponseStatus.BAD_REQUEST,
+                    ActionType.AUTHORIZATION.actionName,
+                    ActionResponseStatus.INTERNAL_SERVER_ERROR,
                     "Error occurred while processing request...",
                     null,
                     getActionName()
@@ -181,12 +188,13 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
                 ResponseCode.DECLINED.code
         );
         // if the transaction is not created, then rollback the transaction and return an internal server error
-        if (rs) {
+        if (!rs) {
 
             client.close();
             return constructResponse(
-                    ActionResponseStatus.BAD_REQUEST,
-                    "message duplicated, please check your messageId....",
+                    ActionType.AUTHORIZATION.actionName,
+                    ActionResponseStatus.INTERNAL_SERVER_ERROR,
+                    "Server error occurred while processing request...",
                     null,
                     getActionName()
             );
@@ -196,7 +204,8 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
 
         // If thea transaction already exist, we will return a declined response
         return constructResponse(
-                ActionResponseStatus.BAD_REQUEST,
+                ActionType.AUTHORIZATION.actionName,
+                ActionResponseStatus.CONFLICT,
                 "Transaction already exist...",
                 AuthorizationTransactionResponse.builder()
                         .userId(request.getUserId())
@@ -272,25 +281,17 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             this.client.commit();
             this.client.close();
             return constructResponse(
-                    ActionResponseStatus.BAD_REQUEST,
+                    ActionType.AUTHORIZATION.actionName,
+                    ActionResponseStatus.PAYMENT_REQUIRED,
                     "Insufficient balance...",
-                    AuthorizationTransactionResponse.builder()
-                            .userId(request.getUserId())
-                            .messageId(request.getMessageId())
-                            .responseCode(ResponseCode.DECLINED.code)
-                            .balance(
-                                    Balance.builder()
-                                            .amount(currentAccount.getBalance())
-                                            .currency(currentAccount.getCurrency())
-                                            .debitOrCredit(recentCreditOrDebit)
-                                            .build()
-                            ).build(),
+                  null,
                     getActionName()
             );
         } else {
             this.client.close();
             return constructResponse(
-                    ActionResponseStatus.BAD_REQUEST,
+                    ActionType.AUTHORIZATION.actionName,
+                    ActionResponseStatus.INTERNAL_SERVER_ERROR,
                     "Error occurred while processing request...",
                     null,
                     getActionName()
@@ -305,7 +306,6 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
     @Override
     public boolean requestValidated(APIGatewayProxyRequestEvent event) {
         LOGGER.info("Validating request...");
-
         if (event.getPathParameters() == null || event.getBody() == null || event.getPathParameters().isEmpty() || event.getBody().isEmpty()) {
             return false;
         }
