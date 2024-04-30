@@ -8,8 +8,8 @@ CDK, APIGateWay, CloudWatch, CLI, IAM, and RDS(MySQL).
 ## Problem Statement:
 Current's core banking engine requires a real-time transaction service that can handle
 two types of transactions:
-1) Loads: Add money to a user with different currency (credit)
-2) Authorizations: Conditionally remove money from a user with different currency (debit)
+1) Load: Add money to a user with different currency (credit)
+2) Authorization: Conditionally remove money from a user with different currency (debit)
 
 ## Detail Design:
 ### Database Design:
