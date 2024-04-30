@@ -1,5 +1,5 @@
 ## Feature Statement:
-Develop a robust adn scalable real-time transaction service 
+Develop a robust and scalable real-time transaction service 
 that enable users to securely load funds to their account and authorize 
 transactions based on their current balances. The system must support real-time balance updates with currency exchange
 and maintain a high level of availability and reliability. The system will build base on **AWS SAM** by using AWS Lambda,
@@ -20,16 +20,16 @@ two types of transactions:
 * id: (PK, VARCHAR): Uniquely identifies a user
 * username: (VARCHAR): User's username
 * email: (VARCHAR): User's email
-* createTime: (VARCHAR): Unix Timestamp the user was created
-* updatedTime: (VARCHAR): Unix Timestamp update with the user profile
+* createTime: (VARCHAR): Unix Timestamp of the user was created
+* updatedTime: (VARCHAR): Unix Timestamp of update with the user profile
 * PASSWORD: (VARCHAR): User's password
 
 #### Account
 * id (PK, VARCHAR): Uniquely identifies an account
 * userId (FK, VARCHAR): User's id
 * balance (VARCHAR): Account balance
-* createTime (VARCHAR): Unix Timestamp the account was created
-* updateTime (VARCHAR): Unix Timestamp the account was last updated
+* createTime (VARCHAR): Unix Timestamp of the account was created
+* updateTime (VARCHAR): Unix Timestamp of the account was last updated
 * currency (VARCHAR): The currency of the account balances.
 
 #### Transaction
