@@ -112,10 +112,26 @@ We are looking for attention in the following areas:
 ```
 
 * Load (Different Currency)
-
 ```json
 {"messageId": "83fe04a0-79fe-4e95-b840-e20d7a281d6e", "userId": "4eb3b1d8-a36  9-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "10000.00", "currency": "EUR", "debitOrCredit": "CREDIT"}}
 ```
+
+* Load (Duplicated Transaction)
+```json
+{"messageId": "83fe04a0-79fe-4e95-b840-e20d7a281d6e", "userId": "4eb3b1d8-a36  9-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "10000.00", "currency": "EUR", "debitOrCredit": "CREDIT"}}
+```
+
+
+* Load (Unknown User)
+```json
+{"messageId": "cd5d56f7-23ec-4af1-b043-6b3df4b6589e", "userId": "ea0cbc44-5209-4afc-ad57-77dd2136ec71", "transactionAmount": {"amount": "10000.00", "currency": "USD", "debitOrCredit": "DEBIT"}}
+```
+
+* Load (Unknown Currency)
+```json
+{"messageId": "cd5d56f7-23ec-4af1-b043-6b3df4b6589e", "userId": "ea0cbc44-5209-4afc-ad57-77dd2136ec71", "transactionAmount": {"amount": "10000.00", "currency": "XXX", "debitOrCredit": "DEBIT"}}
+```
+
 
 * Authorization (Same Currency)
 
@@ -130,6 +146,26 @@ We are looking for attention in the following areas:
 {"messageId": "4f9c8417-c8b8-4333-a1f1-c9bc9d3d13cd", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "100.00", "currency": "EUR", "debitOrCredit": "DEBIT"}}
 ```
 
+* Authorization (Duplicated Transaction)
+```json
+{"messageId": "50e70c62-e480-49fc-bc1b-e991ac672173", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "100.00", "currency": "USD", "debitOrCredit": "DEBIT"}}
+```
+
+* Authorization (Insufficient Balance)
+```json
+{"messageId": "bfe3367b-c082-4ab9-83ca-f4181eca64a4", "userId": "4eb3b1d8-a369-4079-9ec3-c3b8a9fa02ed", "transactionAmount": {"amount": "100000.00", "currency": "USD", "debitOrCredit": "DEBIT"}}
+```
+
+* Authorization (Unknown User)
+```json
+{"messageId": "e51989ac-e518-43c5-94fb-5d176dccb214", "userId": "829ec834-7202-49c8-939c-88976cfb2bbb", "transactionAmount": {"amount": "10000.00", "currency": "USD", "debitOrCredit": "DEBIT"}}
+```
+
+* Authorization (Unknown Currency)
+```json
+{"messageId": "e51989ac-e518-43c5-94fb-5d176dccb214", "userId": "829ec834-7202-49c8-939c-88976cfb2bbb", "transactionAmount": {"amount": "10000.00", "currency": "xxx", "debitOrCredit": "DEBIT"}}
+
+```
 
 ## Design considerations
 * Here's my design considerations:
