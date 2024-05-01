@@ -47,7 +47,7 @@ We are looking for attention in the following areas:
 1. Login to you local database with using Mysql
 <br>`mysql -h localhost -u root -p`
 2. Create a database
-<br> `CREATE DATABASE CurrentInterviewDB;`
+<br> `CREATE DATABASE <dabase-name>;`
 3. Synchronize the schema 
 <br> There's two ways to do so. You can try both way
    1. Manually implement data 
@@ -59,8 +59,8 @@ We are looking for attention in the following areas:
       2. 3.2.2 initialize the skeema
       <br> `skeema init -h localhost -u root -p`
       after that it should generate a `.skeema` folder in the root directory
-      3. 3.2.3 Put corresponding schemas (`User.sql, Account.sql, and Transaction.sql`) into the corresponding database's folder
-      4. 3.2.4 Diff and Push the schema
+      3. Put corresponding schemas (`User.sql, Account.sql, and Transaction.sql`) into the corresponding database's folder
+      4. Diff and Push the schema
       <br> `skeema diff -p`
       <br> `skeema push -p`
 4. Facilitate the database with the data (`DBTestExmaple.sql`)
