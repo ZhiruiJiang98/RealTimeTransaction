@@ -18,6 +18,8 @@ import dev.codescreen.library.storage.TransactionStorageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.money.CurrencyUnit;
+import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 import javax.money.UnknownCurrencyException;
 import java.math.BigDecimal;
@@ -62,7 +64,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             return constructResponse(
                     ActionType.AUTHORIZATION.actionName,
                     ActionResponseStatus.BAD_REQUEST,
-                    "query parameter missing or data is not valid...",
+                    "query parameter missing or invalid",
                     null,
                     getActionName()
             );
@@ -80,6 +82,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             AccountDto currentAccount = getCurrentAccount(request.getUserId());
 
             if (currentAccount == null) {
+                this.client.close();
                 return constructResponse(
                         ActionType.AUTHORIZATION.actionName,
                         ActionResponseStatus.NOT_FOUND,
@@ -90,7 +93,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
             }
             //Check if transaction already exist
             if (isTransactionDuplicate(request.getMessageId())) {
-                LOGGER.info("Message duplicated...");
+                LOGGER.info("Transaction messageId duplicated");
                 return handleDuplicateTransaction(request, currentAccount, currentTimestamp);
             }
 
@@ -176,37 +179,43 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
         // ... (code for handling duplicate transactions)
         // if it is exist, then this transaction can't be processed. Return a declined response
         String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, currentAccount.getId());
-        boolean rs = this.transactionStorageManager.createTransaction(this.client,
-                UUID.randomUUID().toString(),
-                request.getMessageId(),
-                currentAccount.getId(),
-                request.getTransactionAmount().getAmount(),
-                request.getTransactionAmount().getCurrency(),
-                currentTimestamp,
-                currentTimestamp,
-                request.getTransactionAmount().getDebitOrCredit(),
-                ResponseCode.DECLINED.code
-        );
-        // if the transaction is not created, then rollback the transaction and return an internal server error
-        if (!rs) {
-
-            client.close();
-            return constructResponse(
-                    ActionType.AUTHORIZATION.actionName,
-                    ActionResponseStatus.INTERNAL_SERVER_ERROR,
-                    "Server error occurred while processing request...",
-                    null,
-                    getActionName()
+        try {
+            boolean rs = this.transactionStorageManager.createTransaction(this.client,
+                    UUID.randomUUID().toString(),
+                    request.getMessageId(),
+                    currentAccount.getId(),
+                    request.getTransactionAmount().getAmount(),
+                    request.getTransactionAmount().getCurrency(),
+                    currentTimestamp,
+                    currentTimestamp,
+                    request.getTransactionAmount().getDebitOrCredit(),
+                    ResponseCode.DECLINED.code
             );
+
+            if (rs) {
+                this.client.commit(); // Commit the transaction if it was created successfully
+            } else {
+                this.client.rollback(); // Rollback the transaction if it was not created successfully
+                return constructResponse(
+                        ActionType.AUTHORIZATION.actionName,
+                        ActionResponseStatus.INTERNAL_SERVER_ERROR,
+                        "Server error occurred while processing request...",
+                        null,
+                        getActionName()
+                );
+            }
+        } catch (SQLException ex) {
+            this.client.rollback(); // Rollback the transaction if an exception occurs
+            throw ex; // Re-throw the exception to be handled by the caller
+        } finally {
+            this.client.close(); // Close the database connection in the finally block
         }
 
-        client.close();
-
-        // If thea transaction already exist, we will return a declined response
+        // If the transaction already exists, we will return a declined response
         return constructResponse(
                 ActionType.AUTHORIZATION.actionName,
                 ActionResponseStatus.CONFLICT,
-                "Transaction already exist...",
+                "Transaction already exists...",
                 AuthorizationTransactionResponse.builder()
                         .userId(request.getUserId())
                         .messageId(request.getMessageId())
@@ -274,28 +283,44 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
     }
 
     private ActionResponse<AuthorizationTransactionResponse> handleInsufficientBalance(AuthorizationTransactionRequest request, TransactionDto currentTransaction, AccountDto currentAccount) throws SQLException {
-
         String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, currentAccount.getId());
         currentTransaction.setStatus(ResponseCode.DECLINED.code);
-        if (processTransaction(currentTransaction, currentAccount, currentAccount.getBalance())) {
-            this.client.commit();
+
+        try {
+            if (processTransaction(currentTransaction, currentAccount, currentAccount.getBalance())) {
+                this.client.commit();
+                return constructResponse(
+                        ActionType.AUTHORIZATION.actionName,
+                        ActionResponseStatus.CREATED,
+                        "Insufficient balance",
+                        AuthorizationTransactionResponse.builder()
+                                .userId(request.getUserId())
+                                .messageId(request.getMessageId())
+                                .responseCode(ResponseCode.DECLINED.code)
+                                .balance(
+                                        Balance.builder()
+                                                .amount(currentAccount.getBalance())
+                                                .currency(currentAccount.getCurrency())
+                                                .debitOrCredit(recentCreditOrDebit)
+                                                .build()
+                                ).build(),
+                        getActionName()
+                );
+            } else {
+                this.client.rollback();
+                return constructResponse(
+                        ActionType.AUTHORIZATION.actionName,
+                        ActionResponseStatus.INTERNAL_SERVER_ERROR,
+                        "Error occurred while processing request...",
+                        null,
+                        getActionName()
+                );
+            }
+        } catch (SQLException ex) {
+            this.client.rollback();
+            throw ex;
+        } finally {
             this.client.close();
-            return constructResponse(
-                    ActionType.AUTHORIZATION.actionName,
-                    ActionResponseStatus.PAYMENT_REQUIRED,
-                    "Insufficient balance...",
-                  null,
-                    getActionName()
-            );
-        } else {
-            this.client.close();
-            return constructResponse(
-                    ActionType.AUTHORIZATION.actionName,
-                    ActionResponseStatus.INTERNAL_SERVER_ERROR,
-                    "Error occurred while processing request...",
-                    null,
-                    getActionName()
-            );
         }
     }
 
@@ -312,13 +337,21 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
         try {
             Gson gson = new Gson();
             AuthorizationTransactionRequest request = gson.fromJson(event.getBody(), AuthorizationTransactionRequest.class);
-            return request.syntacticallyValid() &&
-                    !request.getUserId().isEmpty() &&
-                    !request.getMessageId().isEmpty() &&
-                    request.getTransactionAmount() != null &&
-                    request.getTransactionAmount().getAmount().matches("\\d+(\\.\\d+)?");
-        } catch (JsonSyntaxException | UnknownCurrencyException ex) {
-            LOGGER.error(ex.getMessage());
+            // Basic syntactic validation
+            if (!request.syntacticallyValid() ||
+                    request.getUserId().isEmpty() ||
+                    request.getMessageId().isEmpty() ||
+                    new BigDecimal(request.getTransactionAmount().getAmount()).compareTo(BigDecimal.ZERO) <= 0) {
+                return false;
+            }
+            // Validate the currency
+            CurrencyUnit currency = Monetary.getCurrency(request.getTransactionAmount().getCurrency());
+            return true; // Proceed if the currency is valid
+        } catch (JsonSyntaxException | NumberFormatException ex) {
+            LOGGER.error("Validation error: " + ex.getMessage());
+            return false;
+        } catch (UnknownCurrencyException ex) {
+            LOGGER.error("Invalid currency: " + ex.getMessage());
             return false;
         }
     }

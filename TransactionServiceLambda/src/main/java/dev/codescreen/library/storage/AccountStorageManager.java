@@ -17,7 +17,17 @@ public class AccountStorageManager {
     public boolean updateAccount(MysqlClient client, String id, String userId, String balance, String createdTime, String updatedTime, String currency) throws SQLException{
         LOGGER.info(String.format("Updating Account with id: %s", id));
         try{
-            int rs  = client.executeUpdate(String.format("UPDATE Account SET userId='%s', balance='%s', createdTime='%s', updatedTime='%s', currency='%s' WHERE id='%s'", userId, balance, createdTime, updatedTime, currency, id));
+
+            Map<AccountResultSet, Object> map = Map.of(
+                AccountResultSet.USER_ID, userId,
+                AccountResultSet.BALANCE, balance,
+                AccountResultSet.CREATED_TIME, createdTime,
+                AccountResultSet.UPDATED_TIME, updatedTime,
+                AccountResultSet.CURRENCY, currency,
+                AccountResultSet.ID, id
+            );
+            String query = AccountQueries.updateAccountById(userId, id, map);
+            int rs  = client.executeUpdate(query);
             return rs == 1;
         } catch (SQLException ex) {
             LOGGER.error("Error occurred while updating account", ex);
