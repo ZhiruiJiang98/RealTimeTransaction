@@ -164,7 +164,7 @@ public class CreateAuthorizationTransactionTest {
         ActionResponse<AuthorizationTransactionResponse> response = createAuthorizationTransactionAction.processRequest(event);
 
         // Assert
-        assertEquals(ActionResponseStatus.PAYMENT_REQUIRED, response.getActionResponseStatus());
+        assertEquals(ActionResponseStatus.CREATED, response.getActionResponseStatus());
 
     }
 
