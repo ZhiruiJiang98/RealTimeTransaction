@@ -102,7 +102,6 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
             String currentBalanceAfterTransaction = currentTransactionAmount.add(currentBalance).setScale(2, RoundingMode.CEILING).toString();
             if(processTransaction(currentTransaction, currentAccount, currentBalanceAfterTransaction)){
                 client.commit();
-                client.close();
                 return constructResponse(
                         ActionType.LOAD.actionName,
                         ActionResponseStatus.CREATED,
@@ -120,11 +119,11 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
                         getActionName()
                 );
             } else {
-                this.client.close();
+                this.client.rollback();
                 return constructResponse(
                         ActionType.LOAD.actionName,
                         ActionResponseStatus.INTERNAL_SERVER_ERROR,
-                        "Error occurred while processing request...",
+                        "Error occurred while processing request",
                         null,
                         getActionName()
                 );
@@ -133,9 +132,10 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
 
         } catch (SQLException ex){
             client.rollback();
-            client.close();
             LOGGER.error("SQL Exception: " + ex.getMessage());
             throw ex;
+        } finally{
+            client.close();
         }
     }
 
@@ -217,41 +217,54 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
         return this.transactionStorageManager.getTransactionCount(this.client, messageId) != 0;
     }
     private ActionResponse<LoadTransactionResponse> handleDuplicateTransaction(LoadTransactionRequest request, AccountDto currentAccount, String currentTimestamp) throws SQLException {
-        // if it is exist, then this transaction can't be processed. Return a declined response
         String recentCreditOrDebit = this.transactionStorageManager.creditOrDebitStatus(this.client, currentAccount.getId());
-        boolean rs = this.transactionStorageManager.createTransaction(this.client,
-                UUID.randomUUID().toString(),
-                request.getMessageId(),
-                currentAccount.getId(),
-                request.getTransactionAmount().getAmount(),
-                request.getTransactionAmount().getCurrency(),
-                currentTimestamp,
-                currentTimestamp,
-                request.getTransactionAmount().getDebitOrCredit(),
-                ResponseCode.DECLINED.code
-        );
-        // if the transaction is not created, then rollback the transaction and return an internal server error
-        if (rs) {
 
-            client.close();
-            return constructResponse(
-                    ActionType.LOAD.actionName,
-                    ActionResponseStatus.CONFLICT,
-                    "Message duplicated, please check your messageId....",
-                    null,
-                    getActionName()
+        try {
+            boolean rs = this.transactionStorageManager.createTransaction(this.client,
+                    UUID.randomUUID().toString(),
+                    request.getMessageId(),
+                    currentAccount.getId(),
+                    request.getTransactionAmount().getAmount(),
+                    request.getTransactionAmount().getCurrency(),
+                    currentTimestamp,
+                    currentTimestamp,
+                    request.getTransactionAmount().getDebitOrCredit(),
+                    ResponseCode.DECLINED.code
             );
+
+            if (rs) {
+                client.commit();
+                return constructResponse(
+                        ActionType.LOAD.actionName,
+                        ActionResponseStatus.CONFLICT,
+                        "Message duplicated, please check your messageId",
+                        LoadTransactionResponse.builder()
+                                .userId(request.getUserId())
+                                .messageId(request.getMessageId())
+                                .balance(
+                                        Balance.builder()
+                                                .amount(currentAccount.getBalance())
+                                                .currency(currentAccount.getCurrency())
+                                                .debitOrCredit(recentCreditOrDebit)
+                                                .build()
+                                ).build(),
+                        getActionName()
+                );
+            } else {
+                client.rollback();
+                return constructResponse(
+                        ActionType.LOAD.actionName,
+                        ActionResponseStatus.INTERNAL_SERVER_ERROR,
+                        "Error occurred while processing request",
+                        null,
+                        getActionName()
+                );
+            }
+        } catch (SQLException ex) {
+            client.rollback();
+            throw ex;
+        } finally {
+            client.close();
         }
-
-        client.close();
-
-        // If the transaction already exist, we will return a declined response
-        return constructResponse(
-                ActionType.LOAD.actionName,
-                ActionResponseStatus.INTERNAL_SERVER_ERROR,
-                "Error occurred while processing request...",
-                null,
-                getActionName()
-        );
     }
 }
