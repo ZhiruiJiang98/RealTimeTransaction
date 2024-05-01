@@ -207,6 +207,31 @@ example:
   "error": "500"
 }
 ```
+### Concurrency Control
+1. Optimistic Locking with Version Control (This is the approach I will implement in the future):
 
+   * Each account record in the database will include a version column to track the version of the account.
+   * When processing a transaction, the system will retrieve the current version of the account along with the balance.
+   * During the update of the account balance, the version will be included in the update condition to ensure that the update only succeeds if the version matches.
+   * If the update fails due to a version mismatch, the transaction will be retried with the updated version or an appropriate error response will be returned.
+
+2. Database Transactions:
+
+   * All database operations related to a single transaction will be executed within a database transaction.
+   * The transaction will be started before executing any database queries and will be committed only if all queries succeed.
+   * If any query fails or an error occurs, the entire transaction will be rolled back to maintain data consistency.
+   * The system will use the transaction management features provided by the database (e.g., BEGIN, COMMIT, ROLLBACK) to handle transactions.
+
+3. Unique Constraints and Idempotency:
+
+   * The messageId column in the Transaction table will have a unique constraint to prevent duplicate transactions.
+   * If a request with the same messageId is received multiple times, the system will handle it idempotently by returning the same response as the original request.
+   * This ensures that repeated requests do not lead to multiple transactions being processed.
+
+4. Monitoring and Logging:
+
+   * The system will include comprehensive monitoring and logging to track the behavior and performance of concurrent transactions.
+   * Key metrics such as transaction throughput, response times, error rates, and retry counts will be monitored and logged.
+   * Any anomalies or issues related to concurrency will be logged and alerted for investigation and resolution.
 ### Open Question
 
