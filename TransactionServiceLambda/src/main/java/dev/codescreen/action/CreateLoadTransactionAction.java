@@ -18,6 +18,8 @@ import dev.codescreen.library.storage.TransactionStorageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.money.CurrencyUnit;
+import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 import javax.money.UnknownCurrencyException;
 import java.math.BigDecimal;
@@ -142,20 +144,27 @@ public class CreateLoadTransactionAction implements AbstractAction<APIGatewayPro
     @Override
     public boolean requestValidated(APIGatewayProxyRequestEvent event) {
         LOGGER.info("Validating request...");
-
         if (event.getPathParameters() == null || event.getBody() == null || event.getPathParameters().isEmpty() || event.getBody().isEmpty()) {
             return false;
         }
         try {
             Gson gson = new Gson();
-            LoadTransactionRequest request = gson.fromJson(event.getBody(), LoadTransactionRequest.class);
-            return request.syntacticallyValid() &&
-                    !request.getUserId().isEmpty() &&
-                    !request.getMessageId().isEmpty() &&
-                    request.getTransactionAmount() != null &&
-                    request.getTransactionAmount().getAmount().matches("\\d+(\\.\\d+)?");
-        } catch (JsonSyntaxException | UnknownCurrencyException ex) {
-            LOGGER.error(ex.getMessage());
+            AuthorizationTransactionRequest request = gson.fromJson(event.getBody(), AuthorizationTransactionRequest.class);
+            // Basic syntactic validation
+            if (!request.syntacticallyValid() ||
+                    request.getUserId().isEmpty() ||
+                    request.getMessageId().isEmpty() ||
+                    new BigDecimal(request.getTransactionAmount().getAmount()).compareTo(BigDecimal.ZERO) <= 0) {
+                return false;
+            }
+            // Validate the currency
+            CurrencyUnit currency = Monetary.getCurrency(request.getTransactionAmount().getCurrency());
+            return true; // Proceed if the currency is valid
+        } catch (JsonSyntaxException | NumberFormatException ex) {
+            LOGGER.error("Validation error: " + ex.getMessage());
+            return false;
+        } catch (UnknownCurrencyException ex) {
+            LOGGER.error("Invalid currency: " + ex.getMessage());
             return false;
         }
     }
