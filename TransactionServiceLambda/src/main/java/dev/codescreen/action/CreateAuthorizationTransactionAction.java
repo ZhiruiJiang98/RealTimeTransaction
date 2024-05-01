@@ -215,7 +215,7 @@ public class CreateAuthorizationTransactionAction implements AbstractAction<APIG
         return constructResponse(
                 ActionType.AUTHORIZATION.actionName,
                 ActionResponseStatus.CONFLICT,
-                "Transaction already exists...",
+                "Transaction message duplicated",
                 AuthorizationTransactionResponse.builder()
                         .userId(request.getUserId())
                         .messageId(request.getMessageId())
