@@ -56,7 +56,8 @@ We are looking for attention in the following areas:
       <br> copy and paste to the sql terminal or using `SOURCE` command
    2. [Skeema.io Schema management tool](https://www.skeema.io/docs/examples/)
       1. [Install skeema.io](https://www.skeema.io/cli/download/)
-      2. 3.2.2 initialize the skeema
+      
+      2. initialize the skeema
       <br> `skeema init -h localhost -u root -p`
       after that it should generate a `.skeema` folder in the root directory
       3. Put corresponding schemas (`User.sql, Account.sql, and Transaction.sql`) into the corresponding database's folder
@@ -64,7 +65,7 @@ We are looking for attention in the following areas:
       <br> `skeema diff -p`
       <br> `skeema push -p`
 4. Facilitate the database with the data (`DBTestExmaple.sql`)
-5. modify the required environment variables in the `service.yml` file in the `TransactionServiceLambda` folder
+5. Modify the required environment variables in the `service.yml` file in the `TransactionServiceLambda` folder
 
 
 ### Project setup
@@ -82,7 +83,7 @@ We are looking for attention in the following areas:
 <br>`sam local start-api`
  <br>Output should be look like this
 <br>![img.png](Images/start_local_api.png)
-2. test the API endpoint with the following curl command or using Postman
+2. Test the API endpoint with the following curl command or using Postman
 
    1. `http://<your-local-ip>/ping`
       1. CURL 
