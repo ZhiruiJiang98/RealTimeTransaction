@@ -17,7 +17,7 @@ public class AccountQueries {
                             : attributes.get(key).toString();
                     return key.name + "=" + value;
                 }).collect(Collectors.joining(",")) +
-                " WHERE userId='" + userId + "' AND accountId='" + accountId + "'";
+                " WHERE userId='" + userId + "' AND id ='" + accountId + "'";
     }
     public static String getAccountById(String userId, String accountId) {
         return "SELECT * FROM Account WHERE userId='" + userId + "';";
