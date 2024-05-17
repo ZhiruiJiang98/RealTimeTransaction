@@ -1,12 +1,8 @@
-**Important: Don't forget to update the [Candidate README](#candidate-readme) section**
 
 Real-time Transaction Challenge
 ===============================
 ## Overview
-Welcome to Current's take-home technical assessment for backend engineers! We appreciate you taking the time to complete this, and we're excited to see what you come up with.
-
-Today, you will be building a small but critical component of Current's core banking enging: real-time balance calculation through [event-sourcing](https://martinfowler.com/eaaDev/EventSourcing.html).
-
+It's a real-time transaction project
 ## Schema
 The [included service.yml](service.yml) is the OpenAPI 3.0 schema to a service we would like you to create and host. 
 
@@ -18,7 +14,6 @@ The service accepts two types of transactions:
 
 Every load or authorization PUT should return the updated balance following the transaction. Authorization declines should be saved, even if they do not impact balance calculation.
 
-You may use any technologies to support the service. We do not expect you to use a persistent store (you can you in-memory object), but you can if you want. We should be able to bootstrap your project locally to test.
 
 ## Expectations
 We are looking for attention in the following areas:
@@ -237,9 +232,6 @@ we incorporate AWS ElastiCache and/or messaging systems like AWS SQS or Apache K
                                                @@@@@@@@@@@@@@@@@@               
                                                     @@@@@@@@                    
 ```
-## License
-
-At CodeScreen, we strongly value the integrity and privacy of our assessments. As a result, this repository is under exclusive copyright, which means you **do not** have permission to share your solution to this test publicly (i.e., inside a public GitHub/GitLab repo, on Reddit, etc.). <br>
 
 ## Submitting your solution
 
