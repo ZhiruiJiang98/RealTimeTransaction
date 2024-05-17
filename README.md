@@ -212,26 +212,6 @@ we incorporate AWS ElastiCache and/or messaging systems like AWS SQS or Apache K
 
 * **IAM**: Manages access to AWS resources. Policies are defined to adhere to the principle of least privilege.
 * **VPC**: Isolates network environments. API Gateway and Lambda functions interact within private subnets to enhance security.
-## ASCII art
-*Optional but suggested, replace this:*
-```
-                                                                                
-                   @@@@@@@@@@@@@@                                               
-               @@@@@@@@@@@@@@@@@@@@@                                            
-             @@@@@@@@@@@@@@@@@@@@@@@@@@                                         
-          @@@@@@@@@@@@@@@@@@@@@@@@                                  @@@@        
-        @@@@@@@@@@@@@@@@@@@@@      @@@@@@                        @@@@@@@@@      
-     @@@@@@@@@@@@@@@@@@@@@    @@@@@@@@@@@@@@@                 .@@@@@@@@@@@@@@   
-   @@@@@@@@@@@@@@@@@@@@   @@@@@@@@@@@@@@@@@@@@@           @@@@@@@@@@@@@@@@@@@@@ 
- @@@@@@@@@@@@@@@@@@@    @@@@@@@@@@@@@@@@@@@@@@@@@@   @@@@@@@@@@@@@@@@@@@@@@@@@@ 
-    @@@@@@@@@@@@@@               @@@@@@@@@@@@@@@@@@@    @@@@@@@@@@@@@@@@@@@@    
-      @@@@@@@@@@                     @@@@@@@@@@@@@@@@@@    @@@@@@@@@@@@@@       
-         @@@@                          @@@@@@@@@@@@@@@@@@@@                     
-                                          @@@@@@@@@@@@@@@@@@@@@@@@@@@@@         
-                                            @@@@@@@@@@@@@@@@@@@@@@@@            
-                                               @@@@@@@@@@@@@@@@@@               
-                                                    @@@@@@@@                    
-```
 
 ## Submitting your solution
 
